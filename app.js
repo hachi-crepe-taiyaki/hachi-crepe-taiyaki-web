@@ -1,8 +1,3 @@
-import React from "react";
-import { createRoot } from "react-dom/client";
-import { flushSync } from "react-dom";
-import RatingDistribution from "./src/components/RatingDistribution.jsx";
-
 (() => {
     "use strict";
 
@@ -22,6 +17,7 @@ import RatingDistribution from "./src/components/RatingDistribution.jsx";
     const MIN_PURCHASE = 40;
     const STAMPS_FOR_REWARD = 12;
     const MODAL_CLOSE_DURATION = 220;
+    const DEMO_SCHEMA_VERSION = 4;
 
     const routeNames = new Set([
         "home", "register-1", "register-2", "login", "loyalty",
@@ -39,6 +35,14 @@ import RatingDistribution from "./src/components/RatingDistribution.jsx";
         selectedCategory: "Todas",
         selectedPeriod: 7,
         selectedRatingFilter: "Todas",
+        adminTab: "overview",
+        clientSearch: "",
+        clientLoyaltyFilter: "all",
+        clientLocationFilter: "all",
+        clientRatingFilter: "all",
+        clientAgeFilter: "all",
+        catalogSearch: "",
+        pendingAction: null,
         products: [],
         categories: [],
         productsLoaded: false,
@@ -57,8 +61,6 @@ import RatingDistribution from "./src/components/RatingDistribution.jsx";
 
     const app = document.getElementById("app");
     const toastRegion = document.getElementById("toast-region");
-    const reactRoot = createRoot(app);
-    let ratingRoot = null;
     let modalCloseTimer = null;
     let lastRenderedScreen = null;
 
@@ -172,79 +174,303 @@ import RatingDistribution from "./src/components/RatingDistribution.jsx";
         return "loyalty";
     }
 
+    function dateDaysAgo(days) {
+        return new Date(Date.now() - days * 24 * 60 * 60 * 1000).toISOString();
+    }
+
+    function createSeedDatabase() {
+        const users = [
+            {
+                idUsuario: 9001, nome: "Camila Tanaka", email: "camila@demo.hachi",
+                telefone: "11912345678", dtNasc: "2005-04-15", cidade: "São Paulo",
+                regiao: "Liberdade", funcao: 0, statusUsuario: 1, selos: 8,
+                senha: "hachi123", criadoEm: dateDaysAgo(140), atualizadoEm: dateDaysAgo(2),
+                consentimentoLGPD: true, consentimentoEm: dateDaysAgo(140)
+            },
+            {
+                idUsuario: 9002, nome: "Leonardo", email: "leonardo@demo.hachi",
+                telefone: "", dtNasc: "", cidade: "São Paulo", regiao: "Liberdade",
+                funcao: 2, statusUsuario: 1, selos: 0, senha: "hachi123",
+                criadoEm: dateDaysAgo(180), consentimentoLGPD: true
+            },
+            {
+                idUsuario: 9003, nome: "Julia", email: "julia@demo.hachi",
+                telefone: "", dtNasc: "", cidade: "São Paulo", regiao: "Liberdade",
+                funcao: 1, statusUsuario: 1, selos: 0, senha: "hachi123",
+                criadoEm: dateDaysAgo(170), consentimentoLGPD: true
+            },
+            {
+                idUsuario: 9004, nome: "Mika Aoki", email: "mika.aoki@demo.hachi",
+                telefone: "11923456781", dtNasc: "1998-06-14", cidade: "São Paulo",
+                regiao: "Vila Mariana", funcao: 0, statusUsuario: 1, selos: 11,
+                senha: "hachi123", criadoEm: dateDaysAgo(95), consentimentoLGPD: true,
+                consentimentoEm: dateDaysAgo(95)
+            },
+            {
+                idUsuario: 9005, nome: "Rafael Sato", email: "rafael.sato@demo.hachi",
+                telefone: "11934567812", dtNasc: "1991-03-22", cidade: "São Paulo",
+                regiao: "Pinheiros", funcao: 0, statusUsuario: 1, selos: 3,
+                senha: "hachi123", criadoEm: dateDaysAgo(80), consentimentoLGPD: true,
+                consentimentoEm: dateDaysAgo(80)
+            },
+            {
+                idUsuario: 9006, nome: "Aiko Nakamura", email: "aiko.nakamura@demo.hachi",
+                telefone: "11945678123", dtNasc: "1971-09-10", cidade: "Guarulhos",
+                regiao: "Centro", funcao: 0, statusUsuario: 1, selos: 12,
+                senha: "hachi123", criadoEm: dateDaysAgo(125), consentimentoLGPD: true,
+                consentimentoEm: dateDaysAgo(125)
+            },
+            {
+                idUsuario: 9007, nome: "Renan Oliveira", email: "renan.oliveira@demo.hachi",
+                telefone: "11956781234", dtNasc: "1984-11-08", cidade: "São Paulo",
+                regiao: "Mooca", funcao: 0, statusUsuario: 1, selos: 6,
+                senha: "hachi123", criadoEm: dateDaysAgo(72), consentimentoLGPD: true,
+                consentimentoEm: dateDaysAgo(72)
+            },
+            {
+                idUsuario: 9008, nome: "Lívia Costa", email: "livia.costa@demo.hachi",
+                telefone: "11967812345", dtNasc: "2002-02-19", cidade: "São Paulo",
+                regiao: "Consolação", funcao: 0, statusUsuario: 1, selos: 0,
+                senha: "hachi123", criadoEm: dateDaysAgo(110), consentimentoLGPD: true,
+                consentimentoEm: dateDaysAgo(110)
+            },
+            {
+                idUsuario: 9009, nome: "Bruno Lima", email: "bruno.lima@demo.hachi",
+                telefone: "11978123456", dtNasc: "1980-08-03", cidade: "São Paulo",
+                regiao: "Vila Mariana", funcao: 0, statusUsuario: 1, selos: 9,
+                senha: "hachi123", criadoEm: dateDaysAgo(105), consentimentoLGPD: true,
+                consentimentoEm: dateDaysAgo(105)
+            }
+        ];
+        const redemptions = [
+            { id: 9201, idUsuario: 9006, item: "Taiyaki de Anko", dataHora: dateDaysAgo(24), exemplo: true },
+            { id: 9202, idUsuario: 9008, item: "Crepe cortesia", dataHora: dateDaysAgo(66), exemplo: true }
+        ];
+        const feedbacks = [
+            { idFeedback: 1, idUsuario: 9001, nota: 5, comentario: "Adorei o crepe de morango e o atendimento. Voltarei em breve!", dataHora: dateDaysAgo(3) },
+            { idFeedback: 2, idUsuario: 9001, nota: 4, comentario: "O café estava ótimo e o ambiente é muito acolhedor.", dataHora: dateDaysAgo(16) },
+            { idFeedback: 3, idUsuario: 9001, nota: 5, comentario: "Uma experiência deliciosa na Liberdade.", dataHora: dateDaysAgo(36) },
+            { idFeedback: 10, idUsuario: 9004, nota: 5, comentario: "Taiyaki quentinho e recheio delicioso. Atendimento muito gentil.", dataHora: dateDaysAgo(4), exemplo: true },
+            { idFeedback: 11, idUsuario: 9005, nota: 4, comentario: "Gostei das opções vegetarianas e do café especial.", dataHora: dateDaysAgo(19), exemplo: true },
+            { idFeedback: 12, idUsuario: 9006, nota: 5, comentario: "O parfait sazonal estava lindo e muito gostoso.", dataHora: dateDaysAgo(28), exemplo: true },
+            { idFeedback: 13, idUsuario: 9007, nota: 3, comentario: "O crepe estava ótimo, mas a fila demorou no domingo.", dataHora: dateDaysAgo(8), exemplo: true },
+            { idFeedback: 14, idUsuario: 9008, nota: 2, comentario: "A espera foi longa; espero encontrar menos fila na próxima visita.", dataHora: dateDaysAgo(77), exemplo: true }
+        ];
+        const menuItem = (idProduto, nome, preco, nomeCategoria, descricao, elegivelResgate = false, tipo = "Produto") => ({
+            idProduto,
+            nome,
+            preco,
+            nomeCategoria,
+            descricao,
+            disponivel: 1,
+            elegivelResgate,
+            tipo
+        });
+        const baseCrepe = "Monte o Seu Crepe (Base)";
+        const harajuku = "Crepes Doces — Harajuku Style";
+        const taiyaki = "Taiyaki";
+        const savory = "Crepe Japonês Salgado";
+        const vegan = "Menu Vegano";
+        const drinks = "Frappes, Drinks Gelados, Cafés e Bebidas";
+        const paidExtra = "Adicional pago · não elegível para cortesia";
+        const products = [
+            menuItem(1, "Crepe Especial", 22, baseCrepe, "Até 3 frutas, 1 cobertura e 1 sorvete (acompanha chantilly). Escolha entre frutas: morango, banana, manga, pêssego e kiwi; coberturas: chocolate, morango, caramelo e leite condensado; sorvetes: creme, morango, chocolate e flocos. A massa tradicional contém leite, ovo, açúcar e trigo; opção vegana/sem glúten por R$ 2,50."),
+            menuItem(2, "Crepe Tradicional", 16, baseCrepe, "Até 3 frutas e 1 cobertura (acompanha chantilly). Escolha entre frutas: morango, banana, manga, pêssego e kiwi; coberturas: chocolate, morango, caramelo e leite condensado. A massa tradicional contém leite, ovo, açúcar e trigo; opção vegana/sem glúten por R$ 2,50."),
+            menuItem(3, "Creme de Avelã", 6, baseCrepe, paidExtra, false, "Adicional"),
+            menuItem(4, "Doce de Leite", 5, baseCrepe, paidExtra, false, "Adicional"),
+            menuItem(5, "Creme de Baunilha", 5, baseCrepe, paidExtra, false, "Adicional"),
+            menuItem(6, "Sorvete de Creme", 10, baseCrepe, paidExtra, false, "Adicional"),
+            menuItem(7, "Sorvete de Morango", 10, baseCrepe, paidExtra, false, "Adicional"),
+            menuItem(8, "Sorvete de Chocolate", 10, baseCrepe, paidExtra, false, "Adicional"),
+            menuItem(9, "Sorvete de Flocos", 10, baseCrepe, paidExtra, false, "Adicional"),
+            menuItem(10, "Sorvete de Matchá", 12, baseCrepe, paidExtra, false, "Adicional"),
+            menuItem(11, "Massa Vegana / Sem Glúten", 2.5, baseCrepe, "Opção de massa especial para o crepe. Adicional de R$ 2,50; não elegível para cortesia.", false, "Adicional"),
+            menuItem(12, "Hachi Avelã", 23, harajuku, "Morango, banana e creme de avelã.", true),
+            menuItem(13, "Hachi Brownie", 23, harajuku, "Morango, banana, brownie, chantilly e cobertura de chocolate.", true),
+            menuItem(14, "Hachi Tentação", 23, harajuku, "Morango, chantilly sabor café, creme de avelã e canela.", true),
+            menuItem(15, "Hachi Daifuku", 23, harajuku, "Morango, chantilly, mochi (bolinho doce de arroz), ankô (doce de feijão) e leite condensado.", true),
+            menuItem(16, "Hachi Berry", 24, harajuku, "Morango, mirtilo, chantilly e sorvete de creme.", true),
+            menuItem(17, "Hachi Kohi", 23, harajuku, "Banana, chantilly sabor café, cobertura de chocolate e sorvete de creme.", true),
+            menuItem(18, "Hachi Churros", 23, harajuku, "Morango, banana, doce de leite, canela e sorvete de creme.", true),
+            menuItem(19, "Hachi Bananela", 20, harajuku, "Banana, canela, sorvete de creme e cobertura de caramelo.", true),
+            menuItem(20, "Hachi Matcha", 26, harajuku, "Morango, chantilly, ankô (doce de feijão), mochi (bolinho doce de arroz), leite condensado e sorvete de matchá.", true),
+            menuItem(21, "Taiyaki Tradicional", 12.9, taiyaki, "Bolinho doce japonês em formato de peixe. Escolha o recheio: ankô (doce de feijão), creme de avelã, creme de baunilha ou doce de leite.", true),
+            menuItem(22, "Sorvete de Creme", 10, taiyaki, paidExtra, false, "Adicional"),
+            menuItem(23, "Sorvete de Chocolate", 10, taiyaki, paidExtra, false, "Adicional"),
+            menuItem(24, "Sorvete de Morango", 10, taiyaki, paidExtra, false, "Adicional"),
+            menuItem(25, "Sorvete de Flocos", 10, taiyaki, paidExtra, false, "Adicional"),
+            menuItem(26, "Sorvete de Matchá / Chá Verde", 12, taiyaki, paidExtra, false, "Adicional"),
+            menuItem(27, "Hachi Pep", 17, savory, "Calabresa, mussarela, catupiry, batata palha e alface.", true),
+            menuItem(28, "Hachi Expresso", 17, savory, "Presunto, mussarela, catupiry, cebola e tomate.", true),
+            menuItem(29, "Hachi Tamago", 20, savory, "Presunto, mussarela, catupiry, ovo, bacon, batata palha e alface.", true),
+            menuItem(30, "Hachi Italian", 20, savory, "Salame, mussarela, catupiry, cebola e tomate.", true),
+            menuItem(31, "Hachi Chiken", 20, savory, "Frango desfiado e catupiry.", true),
+            menuItem(32, "Hachi Kare", 22, savory, "Carne moída com molho curry, legumes, mussarela e alface.", true),
+            menuItem(33, "Hachi Americano", 24, savory, "Hambúrguer, bacon, mussarela, catupiry e batata palha.", true),
+            menuItem(34, "Hachi Tsuna", 20, savory, "Atum ralado, mussarela, maionese e alface.", true),
+            menuItem(35, "Hachi Light", 22, savory, "Atum ralado, mussarela, palmito, cebola, tomate e alface.", true),
+            menuItem(36, "Hachi 4 Queijos", 18, savory, "Mussarela, catupiry, queijo branco e queijo parmesão.", true),
+            menuItem(37, "Hachi Vegetarian", 22, savory, "Alface, rúcula, palmito, tomate seco e queijo branco.", true),
+            menuItem(38, "Curry Vegetarian", 20, savory, "Proteína de soja com molho curry, mussarela e alface.", true),
+            menuItem(39, "Especial Vegan", 26, vegan, "Até 3 frutas, 1 cobertura e sorvete de açaí (acompanha chantilly vegano).", true),
+            menuItem(40, "Tradicional Vegan", 18, vegan, "Até 3 frutas e 1 cobertura (acompanha chantilly vegano).", true),
+            menuItem(41, "Vegan Curry (Salgado)", 20, vegan, "Proteína de soja com molho curry e alface.", true),
+            menuItem(42, "Hachi Vegan (Salgado)", 21, vegan, "Alface, rúcula, palmito e tomate seco.", true),
+            menuItem(43, "Veg Taiyaki", 13, vegan, "Taiyaki vegano recheado com ankô (doce de feijão).", true),
+            menuItem(44, "Ice Veg Taiyaki", 24, vegan, "Taiyaki vegano recheado com ankô e sorvete de açaí.", true),
+            menuItem(45, "Café com Leite de Aveia P (80ml)", 8, vegan, "Café com leite de aveia. Bebida vegana; não elegível para cortesia.", false),
+            menuItem(46, "Café com Leite de Aveia G (180ml)", 12, vegan, "Café com leite de aveia. Bebida vegana; não elegível para cortesia.", false),
+            menuItem(47, "Café Gelado com Leite de Aveia (400ml)", 16, vegan, "Café gelado com leite de aveia. Bebida vegana; não elegível para cortesia.", false),
+            menuItem(48, "Matcha Latte Quente com Leite de Aveia (200ml)", 14, vegan, "Matcha latte quente com leite de aveia. Bebida vegana; não elegível para cortesia.", false),
+            menuItem(49, "Matcha Latte Gelado com Leite de Aveia (400ml)", 18, vegan, "Matcha latte gelado com leite de aveia. Bebida vegana; não elegível para cortesia.", false),
+            menuItem(50, "Ichigo Latte com Leite de Aveia (400ml)", 18, vegan, "Purê de morango com leite de aveia. Bebida vegana; não elegível para cortesia.", false),
+            menuItem(51, "Ice Berry Vegan (400ml)", 24, vegan, "Frappe de morango com blueberry servido no topo com chantilly vegano. Bebida; não elegível para cortesia.", false),
+            menuItem(52, "Ice Berry (400ml)", 25, drinks, "Frappe de morango e mirtilo. Não elegível para cortesia.", false),
+            menuItem(53, "Ice Mocha (400ml)", 25, drinks, "Frappe de chocolate e café. Não elegível para cortesia.", false),
+            menuItem(54, "Ice Matcha (400ml)", 25, drinks, "Frappe de chá verde. Não elegível para cortesia.", false),
+            menuItem(55, "Choco Ice (400ml)", 25, drinks, "Frappe de chocolate. Não elegível para cortesia.", false),
+            menuItem(56, "Café Gelado (400ml)", 13, drinks, "Café gelado. Não elegível para cortesia.", false),
+            menuItem(57, "Café Gelado com Leite (400ml)", 14, drinks, "Café gelado com leite. Não elegível para cortesia.", false),
+            menuItem(58, "Matcha Latte Gelado (400ml)", 15, drinks, "Matcha latte gelado. Não elegível para cortesia.", false),
+            menuItem(59, "Ichigo Latte (400ml)", 16, drinks, "Ichigo latte gelado. Não elegível para cortesia.", false),
+            menuItem(60, "Soda Italiana (400ml)", 19.9, drinks, "Escolha o sabor: melão, melancia, maçã verde ou framboesa. Não elegível para cortesia.", false),
+            menuItem(61, "Melon Soda Cream (400ml)", 19.9, drinks, "Soda de melão com sorvete de creme. Não elegível para cortesia.", false),
+            menuItem(62, "Espresso P (80ml)", 7, drinks, "Espresso quente. Não elegível para cortesia.", false),
+            menuItem(63, "Espresso G (200ml)", 10, drinks, "Espresso quente. Não elegível para cortesia.", false),
+            menuItem(64, "Cappuccino Tradicional (200ml)", 10, drinks, "Cappuccino tradicional quente. Não elegível para cortesia.", false),
+            menuItem(65, "Chocolate Quente (200ml)", 10, drinks, "Chocolate quente. Não elegível para cortesia.", false),
+            menuItem(66, "Matcha Latte Quente (200ml)", 12, drinks, "Matcha latte quente. Não elegível para cortesia.", false),
+            menuItem(67, "Choco Hachi (250ml)", 16, drinks, "Chocolate quente, sorvete de creme, chantilly e creme de avelã. Não elegível para cortesia.", false),
+            menuItem(68, "Hachi Coffee (250ml)", 16, drinks, "Café quente, sorvete de creme e chantilly. Não elegível para cortesia.", false),
+            menuItem(69, "Água sem gás", 5, drinks, "Água sem gás. Não elegível para cortesia.", false),
+            menuItem(70, "Água com gás", 6, drinks, "Água com gás. Não elegível para cortesia.", false),
+            menuItem(71, "Refrigerante Lata", 8, drinks, "Refrigerante em lata. Não elegível para cortesia.", false),
+            menuItem(72, "Chá Artesanal", 10.9, drinks, "Escolha o sabor: limão siciliano, pêssego, framboesa, melão, maçã verde ou melancia. Não elegível para cortesia.", false)
+        ];
+        const redemptionCounts = new Map();
+        redemptions.forEach((item) => redemptionCounts.set(item.idUsuario, (redemptionCounts.get(item.idUsuario) || 0) + 1));
+        const stampEvents = [];
+        const codes = [];
+
+        users.filter((user) => Number(user.funcao) === 0).forEach((user) => {
+            const count = Number(user.selos || 0) + (redemptionCounts.get(user.idUsuario) || 0) * STAMPS_FOR_REWARD;
+            for (let index = 0; index < count; index++) {
+                const codigo = `H${String(user.idUsuario).slice(-2)}${String(index + 1).padStart(3, "0")}`;
+                const dataHora = dateDaysAgo(Math.min(89, (count - index) * 2 + index % 3));
+                const valor = 40 + ((user.idUsuario + index * 7) % 46);
+                stampEvents.push({ id: `seed-${user.idUsuario}-${index + 1}`, idUsuario: user.idUsuario, codigo, valorCompra: valor, dataHora, exemplo: true });
+                codes.push({ codigo, valor, used: true, idUsuario: user.idUsuario, dataHora, usedAt: dataHora, exemplo: true });
+            }
+        });
+
+        return { schemaVersion: DEMO_SCHEMA_VERSION, users, feedbacks, products, codes, redemptions, stampEvents };
+    }
+
     function getDemoDatabase() {
         const saved = localStorage.getItem(DEMO_STORAGE_KEY);
-        if (saved) {
-            try {
-                const database = JSON.parse(saved);
-                const presetPasswords = {
-                    "camila@demo.hachi": "hachi123",
-                    "leonardo@demo.hachi": "hachi123",
-                    "julia@demo.hachi": "hachi123"
-                };
-                let migrated = false;
-                database.users.forEach((user) => {
-                    if (!user.senha && presetPasswords[user.email]) {
-                        user.senha = presetPasswords[user.email];
-                        migrated = true;
-                    }
-                });
-                database.feedbacks ||= [];
-                database.products ||= [];
-                database.codes ||= [];
-                database.redemptions ||= [];
-                if (migrated) saveDemoDatabase(database);
-                return database;
-            } catch {
-                throw new Error("Os dados locais de demonstração não puderam ser lidos. Limpe os dados do site e tente novamente.");
-            }
+        if (!saved) {
+            const initialDatabase = createSeedDatabase();
+            saveDemoDatabase(initialDatabase);
+            return initialDatabase;
         }
 
-        const now = new Date().toISOString();
-        const database = {
-            users: [
-                {
-                    idUsuario: 9001, nome: "Camila Tanaka", email: "camila@demo.hachi",
-                    telefone: "11912345678", dtNasc: "2002-12-25", cidade: "São Paulo",
-                    regiao: "Liberdade", funcao: 0, statusUsuario: 1, selos: 8,
-                    senha: "hachi123", criadoEm: now, atualizadoEm: now
-                },
-                {
-                    idUsuario: 9002, nome: "Leonardo", email: "leonardo@demo.hachi",
-                    telefone: "", dtNasc: "", cidade: "São Paulo", regiao: "Liberdade",
-                    funcao: 2, statusUsuario: 1, selos: 0, senha: "hachi123", criadoEm: now, atualizadoEm: now
-                },
-                {
-                    idUsuario: 9003, nome: "Julia", email: "julia@demo.hachi",
-                    telefone: "", dtNasc: "", cidade: "São Paulo", regiao: "Liberdade",
-                    funcao: 1, statusUsuario: 1, selos: 0, senha: "hachi123", criadoEm: now, atualizadoEm: now
+        try {
+            const database = JSON.parse(saved);
+            if (!database || typeof database !== "object" || !Array.isArray(database.users)) {
+                throw new Error("Invalid local database.");
+            }
+            database.feedbacks ||= [];
+            database.products ||= [];
+            database.codes ||= [];
+            database.redemptions ||= [];
+            database.stampEvents ||= [];
+
+            const presetPasswords = {
+                "camila@demo.hachi": "hachi123",
+                "leonardo@demo.hachi": "hachi123",
+                "julia@demo.hachi": "hachi123",
+                "mika.aoki@demo.hachi": "hachi123",
+                "rafael.sato@demo.hachi": "hachi123",
+                "aiko.nakamura@demo.hachi": "hachi123",
+                "renan.oliveira@demo.hachi": "hachi123",
+                "livia.costa@demo.hachi": "hachi123",
+                "bruno.lima@demo.hachi": "hachi123"
+            };
+            let changed = false;
+            database.users.forEach((user) => {
+                if (!user.senha && presetPasswords[user.email]) {
+                    user.senha = presetPasswords[user.email];
+                    changed = true;
                 }
-            ],
-            feedbacks: [
-                { idFeedback: 1, idUsuario: 9001, nota: 5, comentario: "Adorei o atendimento e o taiyaki. Voltarei em breve!", dataHora: now },
-                { idFeedback: 2, idUsuario: 9001, nota: 4, comentario: "O café estava ótimo e o ambiente é muito acolhedor.", dataHora: now },
-                { idFeedback: 3, idUsuario: 9001, nota: 5, comentario: "Uma experiência deliciosa na Liberdade.", dataHora: now }
-            ],
-            products: [
-                { idProduto: 1, nome: "Espresso", descricao: "Café espresso tradicional.", preco: 6, disponivel: 1, nomeCategoria: "Cafés" },
-                { idProduto: 2, nome: "Cappuccino", descricao: "Café com leite vaporizado e espuma.", preco: 10, disponivel: 1, nomeCategoria: "Cafés" },
-                { idProduto: 3, nome: "Café Gelado", descricao: "Café gelado levemente adocicado.", preco: 12, disponivel: 1, nomeCategoria: "Cafés" },
-                { idProduto: 4, nome: "Brownie", descricao: "Brownie de chocolate.", preco: 9, disponivel: 1, nomeCategoria: "Doces" },
-                { idProduto: 5, nome: "Cheesecake", descricao: "Fatia de cheesecake cremosa.", preco: 14, disponivel: 1, nomeCategoria: "Doces" },
-                { idProduto: 6, nome: "Cookie", descricao: "Cookie com gotas de chocolate.", preco: 7, disponivel: 1, nomeCategoria: "Doces" },
-                { idProduto: 7, nome: "Pão de Queijo", descricao: "Pão de queijo assado na hora.", preco: 6.5, disponivel: 1, nomeCategoria: "Salgados" },
-                { idProduto: 8, nome: "Coxinha", descricao: "Coxinha de frango.", preco: 8, disponivel: 1, nomeCategoria: "Salgados" },
-                { idProduto: 9, nome: "Misto Quente", descricao: "Sanduíche de queijo e presunto.", preco: 11, disponivel: 1, nomeCategoria: "Salgados" }
-            ],
-            codes: [],
-            redemptions: []
-        };
-        localStorage.setItem(DEMO_STORAGE_KEY, JSON.stringify(database));
-        return database;
+            });
+
+            const noisyFeedbacks = database.feedbacks.filter((item) => /^\.[a-z0-9]{7}$/i.test(String(item.comentario || "").trim()));
+            if (noisyFeedbacks.length) {
+                database.feedbacks = database.feedbacks.filter((item) => !noisyFeedbacks.includes(item));
+                changed = true;
+            }
+
+            if (Number(database.schemaVersion || 1) < DEMO_SCHEMA_VERSION) {
+                const seed = createSeedDatabase();
+                const existingUserIds = new Set(database.users.map((user) => Number(user.idUsuario)));
+                seed.users.forEach((user) => {
+                    if (!existingUserIds.has(Number(user.idUsuario))) database.users.push(user);
+                });
+                const demoBirthDates = {
+                    "camila@demo.hachi": "2005-04-15",
+                    "mika.aoki@demo.hachi": "1998-06-14",
+                    "rafael.sato@demo.hachi": "1991-03-22",
+                    "aiko.nakamura@demo.hachi": "1971-09-10",
+                    "renan.oliveira@demo.hachi": "1984-11-08",
+                    "livia.costa@demo.hachi": "2002-02-19",
+                    "bruno.lima@demo.hachi": "1980-08-03"
+                };
+                database.users.forEach((user) => {
+                    const birthDate = demoBirthDates[String(user.email || "").toLowerCase()];
+                    if (birthDate && user.dtNasc !== birthDate) {
+                        user.dtNasc = birthDate;
+                        changed = true;
+                    }
+                });
+                const existingFeedbackIds = new Set(database.feedbacks.map((item) => String(item.idFeedback)));
+                seed.feedbacks.forEach((item) => {
+                    if (!existingFeedbackIds.has(String(item.idFeedback))) database.feedbacks.push(item);
+                });
+                const existingCodeValues = new Set(database.codes.map((item) => String(item.codigo)));
+                seed.codes.forEach((item) => {
+                    if (!existingCodeValues.has(String(item.codigo))) database.codes.push(item);
+                });
+                const existingRedemptionIds = new Set(database.redemptions.map((item) => String(item.id)));
+                seed.redemptions.forEach((item) => {
+                    if (!existingRedemptionIds.has(String(item.id))) database.redemptions.push(item);
+                });
+                const existingStampIds = new Set(database.stampEvents.map((item) => String(item.id)));
+                seed.stampEvents.forEach((item) => {
+                    if (!existingStampIds.has(String(item.id))) database.stampEvents.push(item);
+                });
+
+                database.products = seed.products;
+                database.schemaVersion = DEMO_SCHEMA_VERSION;
+                changed = true;
+            }
+            if (changed) saveDemoDatabase(database);
+            return database;
+        } catch {
+            throw new Error("Os dados locais de demonstração não puderam ser lidos. Limpe os dados do site e tente novamente.");
+        }
     }
 
     function saveDemoDatabase(database) {
         localStorage.setItem(DEMO_STORAGE_KEY, JSON.stringify(database));
+        if (state.dashboard) {
+            state.dashboard = {
+                users: database.users,
+                feedbacks: database.feedbacks,
+                redemptions: database.redemptions,
+                stampEvents: database.stampEvents,
+                codes: database.codes
+            };
+        }
     }
 
     function getDemoUserById(database, id) {
@@ -272,12 +498,9 @@ import RatingDistribution from "./src/components/RatingDistribution.jsx";
         state.modal = null;
         if (!options.preserveAlert) state.alert = null;
         state.screen = screen;
-        if (window.location.hash === `#${screen}`) {
-            render();
-            afterRender();
-        } else {
-            window.location.hash = screen;
-        }
+        if (window.location.hash !== `#${screen}`) window.location.hash = screen;
+        render();
+        afterRender();
     }
 
     function showToast(message, type = "info") {
@@ -317,6 +540,16 @@ import RatingDistribution from "./src/components/RatingDistribution.jsx";
                 <span>${escapeHtml(fullName())}</span>
               </button>`
             : "";
+        const navItems = !state.user
+            ? [["home", "Início"], ["catalog", "Cardápio"], ["login", "Entrar"]]
+            : isAdmin()
+                ? [["home", "Início"], ["dashboard", "Painel"]]
+                : isEmployee()
+                    ? [["home", "Início"], ["attendant", "Atendimento"], ["catalog", "Cardápio"]]
+                    : [["home", "Início"], ["loyalty", "Meu cartão"], ["catalog", "Cardápio"]];
+        const navigation = navItems.map(([route, label]) =>
+            `<a class="nav-link" href="#${route}" data-route="${route}" ${state.screen === route ? 'aria-current="page"' : ""}>${label}</a>`
+        ).join("") + (isAdmin() ? `<button class="nav-link nav-link-button" type="button" data-action="admin-clients" aria-current="${state.screen === "dashboard" && state.adminTab === "clients" ? "page" : "false"}">Clientes &amp; Insights</button>` : "");
         return `<header class="site-header" role="banner">
             <div class="header-actions">
                 ${back ? `<button class="btn btn-quiet btn-small" type="button" data-route="${escapeHtml(back)}" aria-label="Voltar para a tela anterior">← Voltar</button>` : ""}
@@ -326,6 +559,7 @@ import RatingDistribution from "./src/components/RatingDistribution.jsx";
                 </a>
                 ${title ? `<span class="language-chip">${escapeHtml(title)}</span>` : ""}
             </div>
+            <nav class="site-nav" aria-label="Navegação principal">${navigation}</nav>
             <div class="header-actions">
                 ${userControl}
                 <span class="language-chip" aria-label="Idioma português do Brasil">pt-BR</span>
@@ -346,36 +580,51 @@ import RatingDistribution from "./src/components/RatingDistribution.jsx";
     }
 
     function homeScreen() {
-        return `${header()}
-        <main id="main-content" class="page home-page" role="main">
-            <section class="panel home-card" aria-labelledby="home-title">
-                <img class="home-logo" src="assets/HachiLogo.png" alt="Hachi Crepe &amp; Taiyaki - logotipo oficial">
-                <p class="eyebrow">Seu cantinho na Liberdade</p>
-                <h1 class="home-title" id="home-title">Seu momento Hachi fica ainda melhor</h1>
-                <span class="home-rule">A cada compra acima de R$ 40,00 você ganha um selo.</span>
-                <p>Faça parte do Sistema de Fidelidade da Hachi. Acompanhe seus selos, resgates e compartilhe sua experiência.</p>
-                ${alertMarkup()}
-                <div class="home-actions">
-                    <button class="btn btn-dark btn-block" type="button" data-route="register-1">Cadastre-se agora</button>
-                    <span class="divider">ou</span>
-                    <button class="btn btn-secondary btn-block" type="button" data-route="login">Entrar na sua conta</button>
-                </div>
-                <footer class="home-footer">
-                    <a href="#" data-action="legal" data-legal="Termos e Condições de Uso">Termos e Condições de Uso</a>
-                    <a href="#" data-action="legal" data-legal="Política de Privacidade">Política de Privacidade</a>
-                    <a href="#" data-action="legal" data-legal="Política de Cookies">Política de Cookies</a>
-                    <a href="#" data-action="feedback">Enviar feedback</a>
-                </footer>
-                <details class="demo-entry">
-                    <summary>Acessos rápidos de demonstração</summary>
-                    <div class="inline-actions">
-                        <button class="btn btn-secondary btn-small" type="button" data-demo-role="client">Cliente</button>
-                        <button class="btn btn-secondary btn-small" type="button" data-demo-role="employee">Atendente</button>
-                        <button class="btn btn-secondary btn-small" type="button" data-demo-role="admin">Administração</button>
+        return `${header({ authenticated: Boolean(state.user), admin: isAdmin() })}
+        <main id="main-content" class="page page-wide home-page" role="main">
+            ${alertMarkup()}
+            <section class="home-hero" aria-labelledby="home-title">
+                <div class="home-hero-copy">
+                    <p class="eyebrow">Desde 2011 · Um pedacinho do Japão na Liberdade</p>
+                    <h1 id="home-title">Seu momento doce tem lugar na Hachi.</h1>
+                    <p class="home-hero-lead">Crepes japoneses, taiyakis feitos na hora e encontros cheios de afeto no coração de São Paulo.</p>
+                    <div class="loyalty-promise"><span class="loyalty-promise-icon" aria-hidden="true">✦</span><p><strong>Hachi Conecta</strong><br>A cada compra a partir de <strong>R$ 40,00</strong>, ganhe 1 selo. Junte 12 e troque por um item elegível do cardápio.</p></div>
+                    <div class="home-actions">
+                        <button class="btn btn-dark" type="button" data-route="register-1">Criar conta / Participar</button>
+                        <button class="btn btn-secondary" type="button" data-route="login">Entrar na conta</button>
+                        <button class="btn btn-quiet" type="button" data-route="catalog">Explorar cardápio</button>
                     </div>
-                    <p class="field-hint">Sem conexão com servidor. As alterações ficam neste navegador; perfis e feedbacks iniciais são fictícios.</p>
-                </details>
+                </div>
+                <div class="home-hero-art" aria-hidden="true"><img src="assets/HachiLogo.png" alt=""><span class="hero-art-caption">Feito com carinho<br>na Liberdade</span></div>
             </section>
+            <section class="home-intro section-block" aria-labelledby="about-title">
+                <div class="section-heading"><div><p class="eyebrow">A casa Hachi</p><h2 id="about-title">Tradição, criatividade e aconchego desde 2011.</h2></div><p>Na Rua Galvão Bueno, em um dos polos culturais e gastronômicos asiáticos mais queridos do mundo, cada visita é um convite para experimentar.</p></div>
+                <div class="specialty-grid">
+                    <article class="specialty-card"><span class="specialty-icon" aria-hidden="true">◉</span><p class="eyebrow">Feitos para passear</p><h3>Crepes japoneses</h3><p>Massa fina em formato de cone, opções doces, salgadas, vegetarianas e veganas. Frutas, chantili, sorvete, anko e mochi para combinar.</p></article>
+                    <article class="specialty-card"><span class="specialty-icon" aria-hidden="true">鯛</span><p class="eyebrow">Assados na hora</p><h3>Taiyakis</h3><p>O tradicional doce japonês em formato de peixe, com recheios de anko, creme de baunilha, avelã ou doce de leite.</p></article>
+                    <article class="specialty-card"><span class="specialty-icon" aria-hidden="true">✿</span><p class="eyebrow">Sabores da estação</p><h3>Bebidas &amp; sazonais</h3><p>Parfaits, cafés especiais e frappes, além de menus temáticos de Páscoa, Festa Junina, Dia dos Namorados, Halloween, Natal e Matsuris.</p></article>
+                </div>
+                <div class="visit-card">
+                    <div><p class="eyebrow">Venha nos visitar</p><h3>Rua Galvão Bueno, 586</h3><p>Liberdade · São Paulo — SP</p></div>
+                    <div><p class="eyebrow">Horário de funcionamento</p><p><strong>Quarta a sábado:</strong> 11h às 19h<br><strong>Domingo:</strong> 11h às 18h<br><strong>Segunda-feira:</strong> fechado</p></div>
+                    <a class="btn btn-secondary" href="https://maps.google.com/?q=Rua+Galv%C3%A3o+Bueno+586+Liberdade+S%C3%A3o+Paulo" target="_blank" rel="noopener noreferrer">Ver localização</a>
+                </div>
+            </section>
+            <section class="home-hub section-block" aria-labelledby="hub-title">
+                <div class="section-heading"><div><p class="eyebrow">Hachi Conecta</p><h2 id="hub-title">O que você deseja fazer agora?</h2></div><p>Escolha seu próximo passo. Os recursos de fidelidade funcionam localmente neste protótipo.</p></div>
+                <div class="hub-grid">
+                    <button class="hub-card" type="button" data-route="loyalty"><span aria-hidden="true">✦</span><strong>Meu cartão fidelidade</strong><small>Acompanhe seus 12 selos e resgate recompensas.</small></button>
+                    <button class="hub-card" type="button" data-action="hub-validate"><span aria-hidden="true">⌁</span><strong>Validar código / QR Code</strong><small>Registre o código recebido no balcão após a compra.</small></button>
+                    <button class="hub-card" type="button" data-route="catalog"><span aria-hidden="true">◉</span><strong>Ver cardápio Hachi</strong><small>Conheça os sabores e opções de troca.</small></button>
+                    <button class="hub-card" type="button" data-action="feedback"><span aria-hidden="true">★</span><strong>Deixar um feedback</strong><small>Conte como foi sua experiência na loja.</small></button>
+                </div>
+                <details class="demo-entry"><summary>Acesso da equipe / demonstração</summary><div class="inline-actions"><button class="btn btn-secondary btn-small" type="button" data-demo-role="client">Cliente · Camila</button><button class="btn btn-secondary btn-small" type="button" data-demo-role="employee">Atendente · Julia</button><button class="btn btn-secondary btn-small" type="button" data-demo-role="admin">Administrador · Leonardo</button></div><p class="field-hint">Acessos fictícios para testar a jornada do cliente e as áreas da equipe. Nenhuma alteração é enviada a um servidor.</p></details>
+            </section>
+            <footer class="home-footer">
+                <a href="#" data-action="legal" data-legal="Termos e Condições de Uso">Termos de Uso</a>
+                <a href="#" data-action="legal" data-legal="Política de Privacidade">Política de Privacidade</a>
+                <a href="#" data-action="legal" data-legal="Política de Cookies">Política de Cookies</a>
+            </footer>
         </main>
         ${footer()}`;
     }
@@ -506,6 +755,7 @@ import RatingDistribution from "./src/components/RatingDistribution.jsx";
                         <p>${availableRewards > 0
                             ? "Apresente o bilhete no estabelecimento para escolher seu item."
                             : `Faltam ${STAMPS_FOR_REWARD - currentCardStamps} selo(s) para liberar seu próximo resgate.`}</p>
+                        <p class="field-hint">Cortesias disponíveis em Taiyaki, Crepes Doces — Harajuku Style, Crepe Japonês Salgado e itens não-bebida do Menu Vegano. Adicionais e bebidas não participam.</p>
                     </div>
                     <div class="stack">
                         <button class="btn btn-primary btn-block" type="button" data-action="redeem" ${availableRewards < 1 ? "disabled" : ""}>Fazer resgate</button>
@@ -557,9 +807,11 @@ import RatingDistribution from "./src/components/RatingDistribution.jsx";
     function catalogScreen() {
         const categories = ["Todas", ...new Set(state.categories.map((category) => category.nome).filter(Boolean))];
         const selected = state.selectedCategory;
+        const query = normalizeText(state.catalogSearch);
         const visibleProducts = state.products.filter((product) =>
             Number(product.disponivel) !== 0 &&
-            (selected === "Todas" || product.nomeCategoria === selected)
+            (selected === "Todas" || product.nomeCategoria === selected) &&
+            (!query || normalizeText(`${product.nome} ${product.nomeCategoria} ${product.descricao} ${product.tipo}`).includes(query))
         );
         const content = state.productsLoading
             ? `<div class="grid grid-3">${Array.from({ length: 6 }, () => `<div class="card stack"><div class="skeleton" style="height:140px"></div><div class="skeleton" style="width:60%"></div><div class="skeleton"></div></div>`).join("")}</div>`
@@ -567,23 +819,25 @@ import RatingDistribution from "./src/components/RatingDistribution.jsx";
                 ? `<div class="alert alert-error"><p>${escapeHtml(state.productsError)}</p></div>`
                 : visibleProducts.length
                     ? `<div class="product-grid">${visibleProducts.map(productCard).join("")}</div>`
-                    : `<div class="empty-state"><strong>Não há itens disponíveis nesta categoria.</strong><span>Escolha outra categoria para continuar.</span></div>`;
+                    : `<div class="empty-state"><strong>${query ? "Nenhum item encontrado para essa busca." : "Não há itens disponíveis nesta categoria."}</strong><span>${query ? "Confira a grafia ou limpe a busca para ver o cardápio completo." : "Escolha outra categoria para continuar."}</span></div>`;
 
-        return `${header({ back: "loyalty", authenticated: true })}
+        return `${header({ back: isCustomer() ? "loyalty" : "home", authenticated: Boolean(state.user), admin: isAdmin() })}
         <main id="main-content" class="page page-wide" role="main">
             <div class="page-heading">
-                <p class="eyebrow">Conheça os sabores da Hachi</p>
+                <p class="eyebrow">Cardápio oficial Hachi Crepe &amp; Taiyaki</p>
                 <h1>Cardápio</h1>
-                <p>Peça no totem ou caixa. Este cardápio é para consulta.</p>
+                <p>Explore as categorias e encontre seu próximo sabor favorito. Consulte a equipe para confirmar a disponibilidade dos itens.</p>
             </div>
             ${alertMarkup()}
             <section class="panel">
                 <div class="catalog-toolbar">
+                    <div class="field catalog-search-field"><label for="catalog-search">Buscar no cardápio</label><input id="catalog-search" class="input" type="search" data-focus-key="catalog-search" data-catalog-search value="${escapeHtml(state.catalogSearch)}" placeholder="Produto, ingrediente ou categoria" autocomplete="off"></div>
                     <div class="category-pills" aria-label="Filtrar por categoria">
                         ${categories.map((category) => `<button class="pill" type="button" data-category="${escapeHtml(category)}" aria-pressed="${selected === category}">${escapeHtml(category)}</button>`).join("")}
                     </div>
-                    <span class="demo-badge">Cardápio local</span>
+                    <span class="demo-badge">${visibleProducts.length} ${visibleProducts.length === 1 ? "item" : "itens"}</span>
                 </div>
+                <div class="menu-reward-note"><strong>Resgate com 12 selos:</strong> itens das categorias Taiyaki, Crepes Doces — Harajuku Style, Crepe Japonês Salgado e Menu Vegano (exceto bebidas e adicionais pagos). Os itens elegíveis estão marcados no cardápio.</div>
                 ${content}
             </section>
         </main>
@@ -594,9 +848,10 @@ import RatingDistribution from "./src/components/RatingDistribution.jsx";
         const image = product.imagemUrl && safeHttpUrl(product.imagemUrl)
             ? `<img loading="lazy" src="${escapeHtml(product.imagemUrl)}" alt="">`
             : `<span aria-hidden="true">${productIcon(product.nomeCategoria)}</span>`;
+        const typeLabel = product.tipo === "Adicional" ? "Adicional pago" : product.elegivelResgate ? "Cortesia com 12 selos" : "Não elegível para cortesia";
         return `<article class="card product-card">
             <div class="product-art">${image}</div>
-            <div class="inline-actions"><span class="badge">${escapeHtml(product.nomeCategoria || "Cardápio")}</span><span class="meta">#${escapeHtml(product.idProduto || "")}</span></div>
+            <div class="product-card-tags"><span class="badge">${escapeHtml(product.nomeCategoria || "Cardápio")}</span><span class="menu-eligibility ${product.elegivelResgate ? "is-redeemable" : "is-not-redeemable"}">${escapeHtml(typeLabel)}</span></div>
             <h3>${escapeHtml(product.nome || "Produto")}</h3>
             <p>${escapeHtml(product.descricao || "Consulte a equipe da Hachi para saber mais.")}</p>
             <strong class="product-price">${formatCurrency(product.preco)}</strong>
@@ -612,51 +867,61 @@ import RatingDistribution from "./src/components/RatingDistribution.jsx";
     }
 
     function productIcon(category) {
-        if (/café/i.test(category || "")) return "☕";
-        if (/salgad/i.test(category || "")) return "🥟";
+        if (/café|bebida|frappe/i.test(category || "")) return "☕";
+        if (/salgad/i.test(category || "")) return "🥙";
+        if (/monte o seu/i.test(category || "")) return "🥞";
+        if (/vegano/i.test(category || "")) return "🌱";
         return "🍡";
     }
 
     function dashboardScreen() {
-        const dashboard = state.dashboard;
-        const feedbacks = dashboard?.feedbacks || [];
-        const redemptions = withinSelectedPeriod(dashboard?.redemptions || []);
-        const users = (dashboard?.users || []).filter((user) => Number(user.funcao) === 0);
-        const periodFeedbacks = withinSelectedPeriod(feedbacks);
-        const recent = filteredFeedbacks(feedbacks);
+        const dashboard = state.dashboard || { users: [], feedbacks: [], redemptions: [], stampEvents: [] };
+        const users = dashboard.users.filter((user) => Number(user.funcao) === 0 && Number(user.statusUsuario) === 1);
+        const periodFeedbacks = withinSelectedPeriod(dashboard.feedbacks);
+        const periodStamps = withinSelectedPeriod(dashboard.stampEvents || []);
+        const periodRedemptions = withinSelectedPeriod(dashboard.redemptions);
         const average = periodFeedbacks.length
             ? (periodFeedbacks.reduce((sum, item) => sum + Number(item.nota || 0), 0) / periodFeedbacks.length).toFixed(1)
-            : "—";
-        const locations = locationSummary(users);
+            : "0,0";
         const metrics = [
-            ["Ticket médio", "—", "Pedidos não são registrados neste protótipo local."],
-            ["Avaliação média", periodFeedbacks.length ? `${average} / 5` : "—", `${periodFeedbacks.length} feedback(s) no período`],
-            ["Total de clientes", users.length.toLocaleString("pt-BR"), "Contas salvas neste navegador"],
-            ["Resgates realizados", redemptions.length.toLocaleString("pt-BR"), "Resgates locais no período."]
+            ["Avaliação média", `${average} / 5`, periodFeedbacks.length ? `${periodFeedbacks.length} avaliações no período` : "Nenhuma avaliação neste período"],
+            ["Total de clientes", users.length.toLocaleString("pt-BR"), "Clientes ativos cadastrados localmente"],
+            ["Selos emitidos", periodStamps.length.toLocaleString("pt-BR"), "Compras elegíveis registradas no período"],
+            ["Resgates realizados", periodRedemptions.length.toLocaleString("pt-BR"), "Recompensas trocadas no período"]
         ];
-
         return `${header({ authenticated: true, admin: true })}
         <main id="main-content" class="page page-wide" role="main">
             <div class="dashboard-header page-heading">
-                <div><p class="eyebrow">Visão do estabelecimento</p><h1>Painel Administrativo</h1><p>Olá, ${escapeHtml(fullName())}. Acompanhe os feedbacks e dados disponíveis.</p></div>
+                <div><p class="eyebrow">Visão do estabelecimento</p><h1>Painel Administrativo</h1><p>Olá, ${escapeHtml(fullName())}. Acompanhe a fidelidade e a experiência dos clientes.</p></div>
                 <span class="badge">Perfil administrativo</span>
             </div>
-            <div class="alert alert-warning"><p>Os dados exibidos são locais e podem incluir exemplos fictícios; não representam resultados reais da Hachi.</p></div>
+            <div class="admin-tabs" role="tablist" aria-label="Seções do painel administrativo">
+                <button class="admin-tab" type="button" role="tab" data-admin-tab="overview" aria-selected="${state.adminTab === "overview"}">Visão Geral</button>
+                <button class="admin-tab" type="button" role="tab" data-admin-tab="clients" aria-selected="${state.adminTab === "clients"}">Clientes &amp; Insights</button>
+            </div>
+            ${state.adminTab === "clients" ? clientInsightsScreen(users) : dashboardOverview({ dashboard, users, periodFeedbacks, periodStamps, periodRedemptions, metrics })}
+        </main>
+        ${footer()}`;
+    }
+
+    function dashboardOverview({ dashboard, users, periodFeedbacks, periodStamps, periodRedemptions, metrics }) {
+        const locations = locationSummary(users);
+        const recent = filteredFeedbacks(dashboard.feedbacks);
+        return `<div class="alert alert-warning"><p>Os dados são salvos neste navegador; perfis e interações iniciais são exemplos fictícios.</p></div>
             ${state.dashboardLoading ? `<div class="grid grid-4">${Array.from({ length: 4 }, () => `<div class="card stack"><div class="skeleton" style="width:45%"></div><div class="skeleton" style="height:34px"></div><div class="skeleton"></div></div>`).join("")}</div>` : ""}
             ${state.dashboardError ? `<div class="alert alert-error" role="alert"><p>${escapeHtml(state.dashboardError)} <button class="btn btn-quiet btn-small" type="button" data-action="refresh-dashboard">Tentar novamente</button></p></div>` : ""}
             <div class="filter-row">
-                <h2 class="sr-only">Período dos feedbacks</h2>
+                <h2 class="sr-only">Período dos indicadores</h2>
                 <div class="period-pills" aria-label="Período dos feedbacks">
-                    ${[7, 30, 90].map((days) => `<button class="pill" type="button" data-period="${days}" aria-pressed="${state.selectedPeriod === days}">${days} dias</button>`).join("")}
-                </div>
-                <span class="meta">Dados armazenados neste navegador</span>
+                    ${[7, 30, 90, 0].map((days) => `<button class="pill" type="button" data-period="${days}" aria-pressed="${state.selectedPeriod === days}">${days ? `${days} dias` : "Todos"}</button>`).join("")}
+                </div><span class="meta">${periodFeedbacks.length} avaliações · ${periodStamps.length} selos · ${periodRedemptions.length} resgates</span>
             </div>
             <section class="grid grid-4" aria-label="Indicadores">
                 ${metrics.map(([label, value, note]) => `<article class="card kpi-card"><p class="kpi-label">${escapeHtml(label)}</p><p class="kpi-value">${escapeHtml(value)}</p><p class="kpi-note">${escapeHtml(note)}</p></article>`).join("")}
             </section>
             <div class="dashboard-content">
                 <section class="card stack" aria-labelledby="feedback-heading">
-                    <div class="filter-row"><div><p class="eyebrow">A voz dos clientes</p><h2 id="feedback-heading">Feedbacks recebidos</h2></div><span class="badge">${recent.length} no período</span></div>
+                    <div class="filter-row"><div><p class="eyebrow">A voz dos clientes</p><h2 id="feedback-heading">Feedbacks recebidos</h2></div><span class="badge">${recent.length} ${state.selectedRatingFilter === "Todas" ? "no período" : "correspondentes"}</span></div>
                     <div class="rating-filters" aria-label="Filtrar por nota">
                         ${["Todas", 5, 4, 3, 2, 1].map((rating) => `<button class="pill" type="button" data-rating-filter="${rating}" aria-pressed="${String(state.selectedRatingFilter) === String(rating)}">${rating === "Todas" ? "Todas" : `${rating} estrela(s)`}</button>`).join("")}
                     </div>
@@ -675,13 +940,229 @@ import RatingDistribution from "./src/components/RatingDistribution.jsx";
                     <section class="card">
                         <p class="eyebrow">Experiência do cliente</p>
                         <h2>Notas das avaliações</h2>
-                        <div id="react-rating-chart"></div>
+                        ${ratingDistributionMarkup(periodFeedbacks)}
                         <p class="field-hint">Distribuição dos feedbacks por nota neste período.</p>
                     </section>
                 </aside>
             </div>
-        </main>
-        ${footer()}`;
+        </div>`;
+    }
+
+    function clientProfiles(users) {
+        const dashboard = state.dashboard || {};
+        const feedbacks = dashboard.feedbacks || [];
+        const redemptions = dashboard.redemptions || [];
+        const stamps = dashboard.stampEvents || [];
+        return users.map((user) => {
+            const userFeedbacks = feedbacks.filter((item) => Number(item.idUsuario) === Number(user.idUsuario));
+            const userRedemptions = redemptions.filter((item) => Number(item.idUsuario) === Number(user.idUsuario));
+            const userStamps = stamps.filter((item) => Number(item.idUsuario) === Number(user.idUsuario));
+            const balance = Math.max(0, Number(user.selos) || 0);
+            const lifetimeStamps = Math.max(userStamps.length, balance + userRedemptions.length * STAMPS_FOR_REWARD);
+            const orderedFeedbacks = [...userFeedbacks].sort((a, b) => new Date(b.dataHora) - new Date(a.dataHora));
+            const rating = userFeedbacks.length
+                ? userFeedbacks.reduce((sum, item) => sum + Number(item.nota || 0), 0) / userFeedbacks.length
+                : null;
+            return {
+                user,
+                balance,
+                age: calculateAge(user.dtNasc),
+                lifetimeStamps,
+                redemptions: userRedemptions.length,
+                feedbacks: orderedFeedbacks,
+                latestFeedback: orderedFeedbacks[0] || null,
+                rating,
+                locationGroup: clientLocationGroup(user)
+            };
+        });
+    }
+
+    function clientLocationGroup(user) {
+        const city = normalizeText(user.cidade || "");
+        const region = normalizeText(user.regiao || "");
+        if (!city.includes("sao paulo")) return "other-cities";
+        return /liberdade|se|centro/.test(region) ? "sp-center" : "sp-other";
+    }
+
+    function normalizeText(value) {
+        return String(value || "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().trim();
+    }
+
+    function calculateAge(birthDate) {
+        if (!birthDate) return null;
+        const date = new Date(`${String(birthDate).slice(0, 10)}T00:00:00`);
+        if (Number.isNaN(date.getTime()) || date > new Date()) return null;
+        const today = new Date();
+        return today.getFullYear() - date.getFullYear() -
+            (today.getMonth() < date.getMonth() || (today.getMonth() === date.getMonth() && today.getDate() < date.getDate()) ? 1 : 0);
+    }
+
+    function clientAgeGroup(age) {
+        if (age === null || age === undefined) return "unknown";
+        if (age <= 24) return "under-24";
+        if (age <= 34) return "25-34";
+        if (age <= 44) return "35-44";
+        return "45-plus";
+    }
+
+    function clientAgeGroupLabel(group) {
+        return {
+            "under-24": "Até 24 anos (Jovens / Estudantes)",
+            "25-34": "25 a 34 anos (Jovens Adultos)",
+            "35-44": "35 a 44 anos",
+            "45-plus": "45+ anos"
+        }[group] || "Idade não informada";
+    }
+
+    function customerLoyaltyStatus(balance) {
+        if (balance >= STAMPS_FOR_REWARD) return "ready";
+        if (balance >= 8) return "engaged";
+        if (balance > 0) return "progress";
+        return "inactive";
+    }
+
+    function filteredClients(customers) {
+        const query = normalizeText(state.clientSearch);
+        return customers.filter((customer) => {
+            const { user, balance, rating, locationGroup, age } = customer;
+            const searchText = normalizeText(`${user.nome} ${user.email}`);
+            const phoneQuery = query.replace(/\D/g, "");
+            const matchesQuery = !query ||
+                searchText.includes(query) ||
+                Boolean(phoneQuery) && String(user.telefone || "").replace(/\D/g, "").includes(phoneQuery);
+            const matchesLoyalty = state.clientLoyaltyFilter === "all" ||
+                customerLoyaltyStatus(balance) === state.clientLoyaltyFilter;
+            const matchesLocation = state.clientLocationFilter === "all" ||
+                locationGroup === state.clientLocationFilter;
+            const matchesAge = state.clientAgeFilter === "all" ||
+                clientAgeGroup(age) === state.clientAgeFilter;
+            const ratingGroup = rating === null ? "none" : rating >= 4 ? "promoters" : rating >= 3 ? "neutral" : "detractors";
+            const matchesRating = state.clientRatingFilter === "all" || ratingGroup === state.clientRatingFilter;
+            return matchesQuery && matchesLoyalty && matchesLocation && matchesAge && matchesRating;
+        });
+    }
+
+    function clientSegmentInsights(customers) {
+        const nearlyReady = customers.filter(({ balance }) => balance >= 9 && balance <= 11).length;
+        const locations = new Map();
+        customers.forEach(({ user }) => {
+            const name = [user.cidade, user.regiao].filter(Boolean).join(" · ") || "Localização não informada";
+            locations.set(name, (locations.get(name) || 0) + 1);
+        });
+        const leadingLocation = [...locations.entries()].sort((a, b) => b[1] - a[1])[0];
+        const locationPercent = leadingLocation && customers.length ? Math.round((leadingLocation[1] / customers.length) * 100) : 0;
+        const leadingCustomer = leadingLocation && customers.find(({ user }) =>
+            ([user.cidade, user.regiao].filter(Boolean).join(" · ") || "Localização não informada") === leadingLocation[0]
+        );
+        const regionalProfile = leadingCustomer?.locationGroup === "other-cities" ? "um perfil de visitantes de outras cidades" : "um perfil local recorrente";
+        const feedbacks = customers.flatMap((customer) => customer.feedbacks);
+        const average = feedbacks.length
+            ? (feedbacks.reduce((sum, item) => sum + Number(item.nota || 0), 0) / feedbacks.length).toFixed(1)
+            : null;
+        const detractors = feedbacks.filter((item) => Number(item.nota) <= 2).length;
+        const ageCounts = new Map();
+        customers.filter(({ age }) => age !== null).forEach(({ age }) => {
+            const group = clientAgeGroup(age);
+            ageCounts.set(group, (ageCounts.get(group) || 0) + 1);
+        });
+        const leadingAgeGroup = [...ageCounts.entries()].sort((a, b) => b[1] - a[1])[0];
+        const agePercent = leadingAgeGroup
+            ? Math.round((leadingAgeGroup[1] / [...ageCounts.values()].reduce((sum, count) => sum + count, 0)) * 100)
+            : 0;
+        return [
+            {
+                icon: "↗",
+                title: "Oportunidade de retorno",
+                text: nearlyReady
+                    ? `${nearlyReady} ${nearlyReady === 1 ? "cliente está" : "clientes estão"} a 1–3 visitas de completar o cartão.`
+                    : "Nenhum cliente deste grupo está a até três selos do resgate."
+            },
+            {
+                icon: "⌖",
+                title: "Predominância regional",
+                text: leadingLocation
+                    ? `${locationPercent}% vêm de ${leadingLocation[0]}, sugerindo ${regionalProfile}.`
+                    : "A região será destacada quando houver clientes neste filtro."
+            },
+            {
+                icon: "★",
+                title: "Termômetro de satisfação",
+                text: average
+                    ? `Média de ${average}/5★ neste grupo.${detractors ? ` Atenção: ${detractors} ${detractors === 1 ? "avaliação detratora pede" : "avaliações detratoras pedem"} acompanhamento.` : " Sem avaliações detratoras registradas."}`
+                    : "Ainda não há avaliações para calcular a satisfação deste grupo."
+            },
+            {
+                icon: "◷",
+                title: "Perfil etário",
+                text: leadingAgeGroup
+                    ? `Faixa etária predominante neste filtro: ${clientAgeGroupLabel(leadingAgeGroup[0])} (${agePercent}%).`
+                    : "Não há datas de nascimento informadas neste segmento."
+            }
+        ];
+    }
+
+    function clientInsightsScreen(users) {
+        const profiles = clientProfiles(users);
+        const filtered = filteredClients(profiles);
+        const insights = clientSegmentInsights(filtered);
+        const loyaltyOptions = [
+            ["all", "Todos os clientes"],
+            ["ready", "Prontos para resgate (12+)"],
+            ["engaged", "Quase lá / Engajados (8–11)"],
+            ["progress", "Em progresso (1–7)"],
+            ["inactive", "Inativos / Sem selos (0)"]
+        ];
+        const ratingOptions = [
+            ["all", "Todos os perfis"],
+            ["promoters", "Promotores (4–5★)"],
+            ["neutral", "Neutros (3★)"],
+            ["detractors", "Detratores (1–2★)"],
+            ["none", "Sem avaliação"]
+        ];
+        const locationOptions = [
+            ["all", "Todas as regiões"],
+            ["sp-center", "Liberdade / Centro"],
+            ["sp-other", "Outras regiões de SP"],
+            ["other-cities", "Turistas / Outras cidades"]
+        ];
+        const ageOptions = [
+            ["all", "Todas as idades"],
+            ["under-24", "Até 24 anos (Jovens / Estudantes)"],
+            ["25-34", "25 a 34 anos (Jovens Adultos)"],
+            ["35-44", "35 a 44 anos"],
+            ["45-plus", "45+ anos"]
+        ];
+        return `<section class="client-insights" aria-labelledby="clients-title">
+            <div class="clients-heading"><div><p class="eyebrow">Relacionamento acionável</p><h2 id="clients-title">Clientes &amp; Insights</h2><p class="muted">Combine filtros para encontrar oportunidades de fidelização.</p></div><span class="badge">${users.length} clientes na base</span></div>
+            <div class="client-filters card">
+                <div class="field client-search-field"><label for="client-search">Buscar cliente</label><input id="client-search" class="input" type="search" data-focus-key="client-search" data-client-search value="${escapeHtml(state.clientSearch)}" placeholder="Nome, e-mail ou telefone" autocomplete="off"></div>
+                <div class="field"><label for="client-loyalty-filter">Fidelidade</label><select id="client-loyalty-filter" class="input" data-focus-key="client-loyalty" data-client-filter="loyalty">${loyaltyOptions.map(([value, label]) => `<option value="${value}" ${state.clientLoyaltyFilter === value ? "selected" : ""}>${label}</option>`).join("")}</select></div>
+                <div class="field"><label for="client-location-filter">Região / cidade</label><select id="client-location-filter" class="input" data-focus-key="client-location" data-client-filter="location">${locationOptions.map(([value, label]) => `<option value="${value}" ${state.clientLocationFilter === value ? "selected" : ""}>${label}</option>`).join("")}</select></div>
+                <div class="field"><label for="client-rating-filter">Perfil de avaliação</label><select id="client-rating-filter" class="input" data-focus-key="client-rating" data-client-filter="rating">${ratingOptions.map(([value, label]) => `<option value="${value}" ${state.clientRatingFilter === value ? "selected" : ""}>${label}</option>`).join("")}</select></div>
+                <div class="field"><label for="client-age-filter">Faixa etária</label><select id="client-age-filter" class="input" data-focus-key="client-age" data-client-filter="age">${ageOptions.map(([value, label]) => `<option value="${value}" ${state.clientAgeFilter === value ? "selected" : ""}>${label}</option>`).join("")}</select></div>
+                <div class="client-filter-footer"><span role="status">Mostrando <strong>${filtered.length}</strong> de <strong>${users.length}</strong> clientes encontrados</span><button class="btn btn-quiet btn-small" type="button" data-action="clear-client-filters">Limpar filtros</button></div>
+            </div>
+            <section class="insight-section" aria-labelledby="insights-title"><div class="section-heading"><div><p class="eyebrow">Leitura do segmento</p><h3 id="insights-title">Insights inteligentes</h3></div></div><div class="insight-grid">${insights.map((insight) => `<article class="insight-card"><span class="insight-icon" aria-hidden="true">${insight.icon}</span><div><h4>${escapeHtml(insight.title)}</h4><p>${escapeHtml(insight.text)}</p></div></article>`).join("")}</div></section>
+            <section class="client-list-section" aria-labelledby="client-list-title"><div class="section-heading"><div><p class="eyebrow">Base de relacionamento</p><h3 id="client-list-title">Clientes encontrados</h3></div></div>
+                ${filtered.length ? `<div class="data-table-wrap client-table-wrap"><table class="data-table client-table"><thead><tr><th>Cliente</th><th>Idade</th><th>Cidade / região</th><th>Progresso de selos</th><th>Resgates</th><th>Última avaliação</th><th></th></tr></thead><tbody>${filtered.map((customer) => clientTableRow(customer)).join("")}</tbody></table></div>` : `<div class="empty-state card"><strong>Nenhum cliente corresponde aos filtros.</strong><span>Altere a busca ou limpe os filtros para ver a base completa.</span></div>`}
+            </section>
+        </section>`;
+    }
+
+    function clientTableRow(customer) {
+        const { user, balance, redemptions, latestFeedback, rating, age } = customer;
+        const loyaltyClass = `loyalty-status-${customerLoyaltyStatus(balance)}`;
+        const ratingText = latestFeedback ? `${latestFeedback.nota}/5 ★` : "Sem avaliação";
+        const progress = Math.min(100, (balance / STAMPS_FOR_REWARD) * 100);
+        return `<tr>
+            <td><strong>${escapeHtml(user.nome)}</strong><span class="table-subtext">${escapeHtml(user.email || "")}</span></td>
+            <td>${age === null ? "Não informado" : `${age} anos`}</td>
+            <td>${escapeHtml([user.cidade, user.regiao].filter(Boolean).join(" · ") || "Não informado")}</td>
+            <td><span class="loyalty-status ${loyaltyClass}">${balance}/${STAMPS_FOR_REWARD}</span><div class="client-progress" role="img" aria-label="${balance} de 12 selos"><span style="width:${progress}%"></span></div></td>
+            <td>${redemptions}</td>
+            <td><span class="${latestFeedback && Number(latestFeedback.nota) <= 2 ? "rating-detractor" : ""}">${ratingText}</span></td>
+            <td><button class="btn btn-secondary btn-small" type="button" data-action="client-details" data-client-id="${escapeHtml(user.idUsuario)}">Ver detalhes</button></td>
+        </tr>`;
     }
 
     function feedbackCard(item, users) {
@@ -710,6 +1191,7 @@ import RatingDistribution from "./src/components/RatingDistribution.jsx";
     }
 
     function withinSelectedPeriod(feedbacks) {
+        if (Number(state.selectedPeriod) === 0) return feedbacks.filter((item) => item && !Number.isNaN(new Date(item.dataHora || 0).getTime()));
         const cutoff = new Date();
         cutoff.setDate(cutoff.getDate() - state.selectedPeriod);
         return feedbacks.filter((item) => {
@@ -729,6 +1211,36 @@ import RatingDistribution from "./src/components/RatingDistribution.jsx";
             .map(([name, count]) => ({ name, count, percent: total ? Math.round((count / total) * 100) : 0 }))
             .sort((a, b) => b.count - a.count)
             .slice(0, 6);
+    }
+
+    function ratingDistributionMarkup(feedbacks) {
+        const ratings = feedbacks
+            .map((item) => Number(item.nota))
+            .filter((rating) => Number.isInteger(rating) && rating >= 1 && rating <= 5);
+        if (!ratings.length) {
+            return `<div class="rating-empty" role="status"><span class="rating-empty-icon" aria-hidden="true">☆</span><strong>As avaliações aparecerão aqui</strong><span>Ainda não há feedbacks neste período.</span></div>`;
+        }
+
+        const average = ratings.reduce((sum, rating) => sum + rating, 0) / ratings.length;
+        const averageText = average.toFixed(1);
+        const stars = Array.from({ length: 5 }, (_, index) => {
+            const star = index + 1;
+            const partial = average > index && average < star;
+            const fill = Math.max(0, Math.min(100, (average - index) * 100));
+            const className = average >= star ? "is-filled" : partial ? "is-partial" : "";
+            const style = partial ? ` style="background-image:linear-gradient(90deg,#b66a12 ${fill}%,#ded6cd ${fill}%)"` : "";
+            return `<span class="${className}"${style} aria-hidden="true">★</span>`;
+        }).join("");
+        const bars = [5, 4, 3, 2, 1].map((rating) => {
+            const count = ratings.filter((value) => value === rating).length;
+            const percentage = Math.round((count / ratings.length) * 100);
+            const label = count === 1 ? "avaliação" : "avaliações";
+            return `<div class="rating-bar-row"><span class="rating-bar-label">${rating} <span aria-hidden="true">★</span></span><div class="rating-bar-track" role="img" aria-label="${rating} estrelas: ${count} ${label}, ${percentage}%"><span class="rating-bar-fill" style="width:${percentage}%"></span></div><span class="rating-bar-count">${count}</span></div>`;
+        }).join("");
+        return `<div class="rating-distribution">
+            <div class="rating-summary"><strong class="rating-average">${averageText}</strong><div><div class="rating-summary-stars" role="img" aria-label="Média de ${averageText} de 5 estrelas">${stars}</div><span class="rating-summary-caption">${ratings.length} ${ratings.length === 1 ? "avaliação" : "avaliações"}</span></div></div>
+            <div class="rating-bars" role="group" aria-label="Distribuição de avaliações por nota">${bars}</div>
+        </div>`;
     }
 
     function attendantScreen() {
@@ -788,33 +1300,28 @@ import RatingDistribution from "./src/components/RatingDistribution.jsx";
         }
     }
 
-    function render() {
+    function render({ preserveFocus = null } = {}) {
         const screenChanged = lastRenderedScreen !== state.screen;
+        const focusKey = preserveFocus?.dataset?.focusKey || null;
+        const selectionStart = typeof preserveFocus?.selectionStart === "number" ? preserveFocus.selectionStart : null;
+        const selectionEnd = typeof preserveFocus?.selectionEnd === "number" ? preserveFocus.selectionEnd : null;
         if (!state.modal && modalCloseTimer !== null) {
             window.clearTimeout(modalCloseTimer);
             modalCloseTimer = null;
         }
         document.body.classList.toggle("modal-open", Boolean(state.modal));
-        if (ratingRoot) {
-            ratingRoot.unmount();
-            ratingRoot = null;
-        }
-        flushSync(() => {
-            reactRoot.render(React.createElement("div", {
-                className: "react-app-frame",
-                dangerouslySetInnerHTML: { __html: `${screenContent()}${state.modal ? renderModal(state.modal) : ""}` }
-            }));
-        });
+        app.innerHTML = `${screenContent()}${state.modal ? renderModal(state.modal) : ""}`;
         if (screenChanged) {
             app.querySelector(".page")?.classList.add("page-entering");
             lastRenderedScreen = state.screen;
         }
-        const ratingContainer = app.querySelector("#react-rating-chart");
-        if (ratingContainer) {
-            ratingRoot = createRoot(ratingContainer);
-            ratingRoot.render(React.createElement(RatingDistribution, {
-                feedbacks: withinSelectedPeriod(state.dashboard?.feedbacks || [])
-            }));
+        if (focusKey) {
+            const nextFocus = [...app.querySelectorAll("[data-focus-key]")]
+                .find((element) => element.dataset.focusKey === focusKey);
+            nextFocus?.focus();
+            if (nextFocus?.setSelectionRange && selectionStart !== null && selectionEnd !== null) {
+                nextFocus.setSelectionRange(selectionStart, selectionEnd);
+            }
         }
     }
 
@@ -826,12 +1333,25 @@ import RatingDistribution from "./src/components/RatingDistribution.jsx";
             if (state.modal.type === "scan") startCameraScanner();
             return;
         }
+        if (state.pendingAction && isCustomer() && state.screen === "loyalty") {
+            const action = state.pendingAction;
+            state.pendingAction = null;
+            const trigger = app.querySelector(action === "validate" ? '[data-action="scan-code"]' : '[data-action="feedback"]');
+            trigger?.focus();
+            state.selectedRating = 5;
+            openModal(action === "validate" ? "scan" : "feedback");
+            return;
+        }
+        if (state.pendingAction && state.user && state.screen === routeForUser() && !isCustomer()) {
+            state.pendingAction = null;
+            showToast("Esse recurso está disponível para contas de cliente.", "info");
+        }
         if (state.screen === "catalog" && !state.productsLoaded && !state.productsLoading) loadProducts();
         if (state.screen === "dashboard" && !state.dashboardLoaded && !state.dashboardLoading) loadDashboard();
     }
 
     function navigateRoute(screen) {
-        const protectedScreens = new Set(["loyalty", "profile", "catalog", "dashboard", "attendant", "attendant-code"]);
+        const protectedScreens = new Set(["loyalty", "profile", "dashboard", "attendant", "attendant-code"]);
         if (protectedScreens.has(screen) && !state.user) {
             state.alert = { type: "warning", message: "Entre na sua conta para continuar." };
             go("login", { preserveAlert: true });
@@ -857,12 +1377,9 @@ import RatingDistribution from "./src/components/RatingDistribution.jsx";
         state.alert = null;
         state.dashboardLoaded = screen === "dashboard" ? state.dashboardLoaded : false;
         state.productsLoaded = screen === "catalog" ? state.productsLoaded : false;
-        if (window.location.hash === `#${screen}`) {
-            render();
-            afterRender();
-        } else {
-            window.location.hash = screen;
-        }
+        if (window.location.hash !== `#${screen}`) window.location.hash = screen;
+        render();
+        afterRender();
     }
 
     function openModal(type, options = {}) {
@@ -923,7 +1440,8 @@ import RatingDistribution from "./src/components/RatingDistribution.jsx";
     }
 
     function modalShell(title, content, { size = "modal-small", labelledBy = "dialog-title" } = {}) {
-        return `<div class="modal-backdrop" data-action="backdrop-close">
+        const backdropClass = size === "modal-drawer" ? "modal-backdrop modal-backdrop-drawer" : "modal-backdrop";
+        return `<div class="${backdropClass}" data-action="backdrop-close">
             <section class="modal ${size}" role="dialog" aria-modal="true" aria-labelledby="${labelledBy}" tabindex="-1">
                 <div class="modal-header"><h2 id="${labelledBy}">${escapeHtml(title)}</h2><button class="modal-close" type="button" data-action="close-modal" aria-label="Fechar">×</button></div>
                 ${content}
@@ -945,8 +1463,8 @@ import RatingDistribution from "./src/components/RatingDistribution.jsx";
         }
 
         if (modal.type === "redeem") {
-            const content = `<p class="modal-copy">Você precisa estar no estabelecimento da Hachi para obter o resgate.</p>
-                <p>Você confirma que realmente quer realizar um resgate?</p>
+            const content = `<p class="modal-copy">No balcão da Hachi, escolha um item elegível: Taiyaki, Crepes Doces — Harajuku Style, Crepe Japonês Salgado ou um item não-bebida do Menu Vegano.</p>
+                <p>Confirma o resgate? Bebidas, bases de crepe e adicionais pagos não são elegíveis.</p>
                 <div class="alert alert-warning"><p><strong>Esta ação consumirá 12 selos da sua conta e não tem volta.</strong></p></div>
                 ${alertMarkup(modal.error ? { type: "error", message: modal.error } : null)}
                 <div class="modal-actions">
@@ -961,8 +1479,8 @@ import RatingDistribution from "./src/components/RatingDistribution.jsx";
                     <div class="ticket-icon" aria-hidden="true">♥</div>
                     <h3>Apresente esta tela ao atendente</h3>
                     <p><strong>Cliente:</strong> ${escapeHtml(fullName())}</p>
-                    <p>Direito a resgate de <strong>01 item</strong>.</p>
-                    <p class="field-hint">Escolha seu item disponível no balcão da Hachi.</p>
+                    <p>Direito a resgate de <strong>01 item elegível</strong>.</p>
+                    <p class="field-hint">Escolha um item identificado como cortesia com 12 selos no cardápio. Bebidas e adicionais pagos não participam.</p>
                 </div>
                 <div class="modal-actions"><button class="btn btn-dark btn-block" type="button" data-action="close-modal">Concluído</button></div>`;
             return modalShell("Bilhete de resgate", content, { size: "modal-small" });
@@ -1013,6 +1531,10 @@ import RatingDistribution from "./src/components/RatingDistribution.jsx";
             return modalShell("Excluir conta?", content, { size: "modal-small" });
         }
 
+        if (modal.type === "client-details") {
+            return clientDetailModal(modal.clientId);
+        }
+
         if (modal.type === "legal") {
             const content = `<div class="alert alert-info"><p>O conteúdo oficial de ${escapeHtml(modal.name)} ainda precisa ser fornecido pelo grupo e pelo estabelecimento.</p></div>
                 <p class="modal-copy">O projeto prevê disponibilizar as informações de privacidade antes do uso. Este protótipo não substitui os documentos legais aprovados.</p>
@@ -1021,6 +1543,62 @@ import RatingDistribution from "./src/components/RatingDistribution.jsx";
         }
 
         return "";
+    }
+
+    function clientDetailModal(clientId) {
+        const dashboard = state.dashboard || {};
+        const user = (dashboard.users || []).find((item) => Number(item.idUsuario) === Number(clientId));
+        if (!user || Number(user.funcao) !== 0) {
+            return modalShell("Cliente não encontrado", `<div class="alert alert-warning"><p>Não foi possível carregar os dados deste cliente.</p></div><button class="btn btn-dark btn-block" type="button" data-action="close-modal">Fechar</button>`, { size: "modal-small" });
+        }
+        const customer = clientProfiles([user])[0];
+        const timeline = [
+            ...(dashboard.stampEvents || [])
+                .filter((item) => Number(item.idUsuario) === Number(user.idUsuario))
+                .map((item) => ({ date: item.dataHora, label: "Selo emitido", detail: `Código ${item.codigo || "local"}`, icon: "✦" })),
+            ...(dashboard.redemptions || [])
+                .filter((item) => Number(item.idUsuario) === Number(user.idUsuario))
+                .map((item) => ({ date: item.dataHora, label: "Recompensa resgatada", detail: item.item || "Item cortesia", icon: "♡" })),
+            ...customer.feedbacks.map((item) => ({
+                date: item.dataHora,
+                label: `Feedback ${item.nota}/5 estrelas`,
+                detail: item.comentario || "Sem comentário.",
+                icon: "★"
+            }))
+        ].sort((a, b) => new Date(b.date || 0) - new Date(a.date || 0));
+        const recommendations = [];
+        const completedCycles = Math.floor(customer.lifetimeStamps / STAMPS_FOR_REWARD);
+        if (completedCycles) recommendations.push(`Cliente recorrente: já acumulou o equivalente a ${completedCycles} ${completedCycles === 1 ? "ciclo" : "ciclos"} completos de fidelidade.`);
+        if (customer.balance > 0 && customer.balance < STAMPS_FOR_REWARD && STAMPS_FOR_REWARD - customer.balance <= 3) {
+            recommendations.push(`Falta${STAMPS_FOR_REWARD - customer.balance === 1 ? "" : "m"} ${STAMPS_FOR_REWARD - customer.balance} selo${STAMPS_FOR_REWARD - customer.balance === 1 ? "" : "s"} para a próxima cortesia: uma boa oportunidade para incentivar o retorno.`);
+        }
+        const attentionFeedback = customer.feedbacks.find((item) => Number(item.nota) <= 3);
+        if (attentionFeedback) recommendations.push(`A avaliação ${attentionFeedback.nota}★ merece atenção: revise o comentário e priorize uma abordagem acolhedora na próxima visita.`);
+        if (recommendations.length < 2) recommendations.push(customer.feedbacks.length
+            ? "Reconheça a preferência do cliente e apresente as novidades sazonais na próxima visita."
+            : "Convide o cliente a compartilhar uma avaliação após a próxima visita.");
+        if (recommendations.length < 3) recommendations.push("Reforce que cada compra elegível a partir de R$ 40,00 gera um selo no cartão Hachi Conecta.");
+        return modalShell(user.nome, `<div class="client-drawer-content">
+            <section class="drawer-section"><p class="eyebrow">Dados cadastrais</p><dl class="data-list drawer-data-list">
+                <div class="data-row"><dt>E-mail</dt><dd>${escapeHtml(user.email || "Não informado")}</dd></div>
+                <div class="data-row"><dt>Telefone</dt><dd>${escapeHtml(user.telefone ? formatPhone(user.telefone) : "Não informado")}</dd></div>
+                <div class="data-row"><dt>Bairro / cidade</dt><dd>${escapeHtml([user.regiao, user.cidade].filter(Boolean).join(" · ") || "Não informado")}</dd></div>
+                <div class="data-row"><dt>Idade</dt><dd>${customer.age === null ? "Não informada" : `${customer.age} anos`}</dd></div>
+                <div class="data-row"><dt>Data de nascimento</dt><dd>${escapeHtml(formatDate(user.dtNasc))}</dd></div>
+                <div class="data-row"><dt>Cadastro</dt><dd>${escapeHtml(formatDate(user.criadoEm))}</dd></div>
+                <div class="data-row"><dt>Consentimento LGPD</dt><dd>${user.consentimentoLGPD ? "Registrado" : "Não registrado"}</dd></div>
+            </dl></section>
+            <section class="drawer-section"><p class="eyebrow">Resumo de fidelidade</p><div class="drawer-kpi-grid">
+                <div><span>Saldo atual</span><strong>${customer.balance} selo${customer.balance === 1 ? "" : "s"}</strong></div>
+                <div><span>Selos históricos</span><strong>${customer.lifetimeStamps}</strong></div>
+                <div><span>Resgates</span><strong>${customer.redemptions}</strong></div>
+                <div><span>Gasto estimado mínimo</span><strong>${formatCurrency(customer.lifetimeStamps * MIN_PURCHASE)}</strong><small>Estimativa: selos históricos × R$ 40,00</small></div>
+            </div></section>
+            <section class="drawer-section"><p class="eyebrow">Próximos passos</p><ul class="recommendation-list">${recommendations.slice(0, 3).map((text) => `<li>${escapeHtml(text)}</li>`).join("")}</ul></section>
+            <section class="drawer-section"><p class="eyebrow">Histórico cronológico</p>${timeline.length
+                ? `<ol class="client-timeline">${timeline.map((item) => `<li><span class="timeline-icon" aria-hidden="true">${item.icon}</span><div><strong>${escapeHtml(item.label)}</strong><p>${escapeHtml(item.detail)}</p><time datetime="${escapeHtml(item.date || "")}">${escapeHtml(formatDate(item.date))}</time></div></li>`).join("")}</ol>`
+                : `<div class="empty-state"><strong>Sem atividades registradas</strong><span>Os códigos, resgates e avaliações aparecerão aqui.</span></div>`}</section>
+        </div>`, { size: "modal-drawer" });
     }
 
     function setBusy(button, busy) {
@@ -1209,7 +1787,13 @@ import RatingDistribution from "./src/components/RatingDistribution.jsx";
         render();
         try {
             const database = getDemoDatabase();
-            state.dashboard = { users: database.users, feedbacks: database.feedbacks, redemptions: database.redemptions };
+            state.dashboard = {
+                users: database.users,
+                feedbacks: database.feedbacks,
+                redemptions: database.redemptions,
+                stampEvents: database.stampEvents,
+                codes: database.codes
+            };
             state.dashboardLoaded = true;
         } catch (error) {
             state.dashboardError = error.message;
@@ -1231,9 +1815,19 @@ import RatingDistribution from "./src/components/RatingDistribution.jsx";
             if (form) showFormError(form, "Código inválido ou já utilizado. Gere um novo código na área do atendente.");
             return;
         }
+        const timestamp = new Date().toISOString();
         localCode.used = true;
+        localCode.usedAt = timestamp;
+        localCode.idUsuario = Number(state.user.idUsuario);
         const user = getDemoUserById(database, state.user.idUsuario);
         user.selos = (Number(user.selos) || 0) + 1;
+        database.stampEvents.push({
+            id: `stamp-${normalizedCode}`,
+            idUsuario: Number(user.idUsuario),
+            codigo: normalizedCode,
+            valorCompra: Number(localCode.valor) || MIN_PURCHASE,
+            dataHora: timestamp
+        });
         saveDemoDatabase(database);
         saveSessionUser(user);
         closeModal();
@@ -1253,7 +1847,12 @@ import RatingDistribution from "./src/components/RatingDistribution.jsx";
             const database = getDemoDatabase();
             const user = getDemoUserById(database, state.user.idUsuario);
             user.selos = (Number(user.selos) || 0) - STAMPS_FOR_REWARD;
-            database.redemptions.push({ id: Date.now(), idUsuario: user.idUsuario, dataHora: new Date().toISOString() });
+            database.redemptions.push({
+                id: Date.now(),
+                idUsuario: user.idUsuario,
+                item: "Item cortesia do cardápio",
+                dataHora: new Date().toISOString()
+            });
             saveDemoDatabase(database);
             saveSessionUser(user);
             state.modal = { type: "ticket" };
@@ -1387,7 +1986,7 @@ import RatingDistribution from "./src/components/RatingDistribution.jsx";
                 generated = "";
                 for (let index = 0; index < 6; index++) generated += alphabet[Math.floor(Math.random() * alphabet.length)];
             } while (database.codes.some((entry) => entry.codigo === generated));
-            database.codes.push({ codigo: generated, valor: amount, used: false });
+            database.codes.push({ codigo: generated, valor: amount, used: false, criadoEm: new Date().toISOString() });
             saveDemoDatabase(database);
             state.attendantCode = generated.toUpperCase();
             state.attendantPurchase = amount;
@@ -1645,8 +2244,28 @@ import RatingDistribution from "./src/components/RatingDistribution.jsx";
         paintRatingPicker(picker);
     }
 
+    function startClientAction(action) {
+        if (!state.user) {
+            state.pendingAction = action;
+            state.alert = { type: "warning", message: "Entre na sua conta para continuar." };
+            go("login", { preserveAlert: true });
+            return;
+        }
+        if (!isCustomer()) {
+            showToast("Esse recurso está disponível para contas de cliente.", "info");
+            return;
+        }
+        if (state.screen !== "loyalty") {
+            state.pendingAction = action;
+            navigateRoute("loyalty");
+            return;
+        }
+        state.selectedRating = 5;
+        openModal(action === "validate" ? "scan" : "feedback");
+    }
+
     function handleClick(event) {
-        const target = event.target.closest("[data-route], [data-action], [data-demo-role], [data-category], [data-period], [data-rating-filter], [data-rating]");
+        const target = event.target.closest("[data-route], [data-action], [data-demo-role], [data-category], [data-period], [data-rating-filter], [data-rating], [data-admin-tab]");
         if (!target) return;
 
         if (target.dataset.route) {
@@ -1656,6 +2275,12 @@ import RatingDistribution from "./src/components/RatingDistribution.jsx";
         }
         if (target.dataset.demoRole) {
             loginDemo(target.dataset.demoRole);
+            return;
+        }
+        if (target.dataset.adminTab) {
+            state.adminTab = target.dataset.adminTab === "clients" ? "clients" : "overview";
+            if (state.screen !== "dashboard") navigateRoute("dashboard");
+            else render();
             return;
         }
         if (target.dataset.category) {
@@ -1687,13 +2312,29 @@ import RatingDistribution from "./src/components/RatingDistribution.jsx";
                 logout();
                 break;
             case "feedback":
-                if (!state.user) {
-                    state.alert = { type: "warning", message: "Entre na sua conta para enviar seu feedback." };
-                    go("login", { preserveAlert: true });
+                startClientAction("feedback");
+                break;
+            case "hub-validate":
+                startClientAction("validate");
+                break;
+            case "admin-clients":
+                state.adminTab = "clients";
+                navigateRoute("dashboard");
+                break;
+            case "client-details":
+                if (!isAdmin()) {
+                    showToast("Acesso restrito à administração.", "error");
                     return;
                 }
-                state.selectedRating = 5;
-                openModal("feedback");
+                openModal("client-details", { clientId: target.dataset.clientId });
+                break;
+            case "clear-client-filters":
+                state.clientSearch = "";
+                state.clientLoyaltyFilter = "all";
+                state.clientLocationFilter = "all";
+                state.clientRatingFilter = "all";
+                state.clientAgeFilter = "all";
+                render();
                 break;
             case "scan-code":
                 openModal("scan");
@@ -1761,6 +2402,16 @@ import RatingDistribution from "./src/components/RatingDistribution.jsx";
     }
 
     function handleInput(event) {
+        if (event.target.matches("[data-client-search]")) {
+            state.clientSearch = event.target.value;
+            render({ preserveFocus: event.target });
+            return;
+        }
+        if (event.target.matches("[data-catalog-search]")) {
+            state.catalogSearch = event.target.value;
+            render({ preserveFocus: event.target });
+            return;
+        }
         if (event.target.id === "postal-code") {
             const digits = event.target.value.replace(/\D/g, "").slice(0, 8);
             event.target.value = digits.length > 5 ? `${digits.slice(0, 5)}-${digits.slice(5)}` : digits;
@@ -1795,6 +2446,14 @@ import RatingDistribution from "./src/components/RatingDistribution.jsx";
         if (event.target.id === "terms-accepted") {
             saveRegisterDraft({ ...state.registerDraft, termsAccepted: event.target.checked });
         }
+        if (event.target.matches("[data-client-filter]")) {
+            const filter = event.target.dataset.clientFilter;
+            if (filter === "loyalty") state.clientLoyaltyFilter = event.target.value;
+            if (filter === "location") state.clientLocationFilter = event.target.value;
+            if (filter === "rating") state.clientRatingFilter = event.target.value;
+            if (filter === "age") state.clientAgeFilter = event.target.value;
+            render({ preserveFocus: event.target });
+        }
     }
 
     function handleKeydown(event) {
@@ -1817,7 +2476,7 @@ import RatingDistribution from "./src/components/RatingDistribution.jsx";
     }
 
     function enforceRouteAccess(screen) {
-        const protectedRoutes = new Set(["loyalty", "profile", "catalog", "dashboard", "attendant", "attendant-code"]);
+        const protectedRoutes = new Set(["loyalty", "profile", "dashboard", "attendant", "attendant-code"]);
         if (protectedRoutes.has(screen) && !state.user) {
             state.alert = { type: "warning", message: "Entre na sua conta para continuar." };
             state.screen = "login";

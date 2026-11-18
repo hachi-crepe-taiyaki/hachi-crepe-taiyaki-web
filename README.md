@@ -1,14 +1,15 @@
 # Hachi Conecta — Interface Web
 
-Aplicação web responsiva do programa de fidelidade e feedback da Hachi Crepe & Taiyaki. A interface usa React e Vite; os fluxos e dados continuam locais, sem integração ativa com APIs.
+Aplicação web responsiva do programa de fidelidade e feedback da Hachi Crepe & Taiyaki. A interface usa HTML, CSS e JavaScript vanilla; o Vite serve a aplicação e executa o build, sem integração ativa com APIs.
 
 ## Telas e jornadas
 
-- Home, cadastro em duas etapas e login.
+- Landing page institucional com especialidades, endereço, horários e acesso direto às jornadas.
+- Cadastro em duas etapas e login.
 - Cartão de fidelidade com 12 selos, registro manual/QR, resgate e bilhete.
 - Perfil, edição e exclusão lógica da conta.
-- Cardápio consultivo, sem fluxo de pedidos.
-- Painel administrativo com feedbacks e distribuição dos cadastros por localização.
+- Cardápio consultivo com as seis categorias oficiais, busca por nome/ingrediente, preços e identificação dos itens elegíveis para resgate com 12 selos; não há fluxo de pedidos.
+- Painel administrativo com abas de visão geral e clientes, indicadores por período, filtros combináveis (incluindo faixa etária), insights de segmento e histórico individual.
 - Fluxo de atendente para gerar códigos de compra e exibir QR Code.
 - Animações suaves respeitam a preferência por movimento reduzido; modais fecham por Escape ou clique no fundo e restauram o foco.
 - Nota de feedback pode ser escolhida com mouse, teclado ou toque.
@@ -30,19 +31,22 @@ Os dados ficam no `localStorage` deste navegador. O login permanece ativo na aba
 
 ## Acessos de exemplo
 
-Na Home, abra **Acessos rápidos de demonstração** para entrar diretamente como Cliente, Atendente ou Administração. Também é possível entrar pelo formulário com qualquer uma destas contas:
+Na Home, abra **Acesso da equipe / demonstração** para testar as jornadas de cliente, atendente e administração. Para entrar como cliente, use o formulário com a conta:
 
 - `camila@demo.hachi`
+
+Também estão disponíveis:
 - `julia@demo.hachi`
 - `leonardo@demo.hachi`
 
-Senha para as três contas: `hachi123`. Novos cadastros são criados e autenticados localmente. CEP, cidade e bairro/região são preenchidos manualmente.
+Senha para as contas de demonstração: `hachi123`. Os dados iniciais incluem clientes fictícios de diferentes regiões e idades, feedbacks e histórico de fidelidade. Novos cadastros são criados e autenticados localmente. CEP, cidade, bairro/região e data de nascimento são preenchidos manualmente.
 
 ## Observações
 
-- As contas, feedbacks e produtos iniciais são dados fictícios; os demais dados são salvos apenas neste navegador e não são sincronizados.
+- As contas, feedbacks, produtos e movimentações iniciais são dados fictícios; os demais dados são salvos apenas neste navegador e não são sincronizados.
+- A cortesia com 12 selos pode ser escolhida entre os itens elegíveis de Taiyaki, Crepes Doces — Harajuku Style, Crepe Japonês Salgado e Menu Vegano. Bases de crepe, bebidas e adicionais pagos não são elegíveis.
 - A senha dos cadastros é armazenada localmente sem proteção de produção. Use somente dados de teste; esta versão não deve ser usada para contas reais.
-- Pedidos não são registrados, então o ticket médio não está disponível. O painel mostra a contagem de feedbacks, clientes e resgates locais.
+- Pedidos não são registrados. O painel apresenta selos emitidos, clientes ativos, avaliações e resgates locais; o gasto no drawer do cliente é uma estimativa mínima baseada nos selos históricos e no valor elegível de R$ 40,00.
 - O código de compra e o QR gerados pelo atendente são locais e só podem ser usados neste navegador.
 - A integração com a API Hachi e a consulta de CEP estão desativadas e documentadas no código para eventual reativação.
 - Os textos jurídicos oficiais ainda precisam ser fornecidos pelo grupo e pelo estabelecimento.
@@ -52,6 +56,5 @@ Senha para as três contas: `hachi123`. Novos cadastros são criados e autentica
 - `index.html`: ponto de entrada da aplicação.
 - `app.css`: tokens, componentes e layouts responsivos.
 - `app.js`: navegação, formulários, armazenamento local e QR Code.
-- `src/main.jsx`: entrada React carregada pelo Vite.
-- `src/components/RatingDistribution.jsx`: componente acessível de distribuição de notas no dashboard.
+- `src/app-interactions.test.js`: teste das interações locais, do seed e do seletor de estrelas.
 - `login.html` e `cadastro.html`: redirecionamentos para as respectivas rotas da aplicação.
