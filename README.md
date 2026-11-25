@@ -9,7 +9,7 @@ Aplicação web responsiva do programa de fidelidade e feedback da Hachi Crepe &
 - Cartão de fidelidade com 12 selos, registro manual/QR, resgate e bilhete.
 - Perfil, edição e exclusão lógica da conta.
 - Cardápio consultivo com as seis categorias oficiais, busca por nome/ingrediente, preços e identificação dos itens elegíveis para resgate com 12 selos; não há fluxo de pedidos.
-- Painel administrativo com abas de visão geral e clientes, indicadores por período, filtros combináveis (incluindo faixa etária), insights de segmento e histórico individual.
+- Painel administrativo com abas de visão geral e clientes, KPIs com comparação ao período anterior, busca por palavras nos comentários, listas expansíveis de feedbacks e cidades, exportação CSV, filtros combináveis (incluindo faixa etária), insights de segmento e histórico individual.
 - Fluxo de atendente para gerar códigos de compra e exibir QR Code.
 - Animações suaves respeitam a preferência por movimento reduzido; modais fecham por Escape ou clique no fundo e restauram o foco.
 - Nota de feedback pode ser escolhida com mouse, teclado ou toque.

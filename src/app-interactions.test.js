@@ -1,4 +1,4 @@
-import { beforeAll, describe, expect, it } from "vitest";
+import { beforeAll, describe, expect, it, vi } from "vitest";
 
 const delay = (milliseconds) => new Promise((resolve) => window.setTimeout(resolve, milliseconds));
 
@@ -107,10 +107,55 @@ describe("local interface interactions", () => {
     });
 
     it("filters clients by age and displays age in the customer drawer", async () => {
+        const database = JSON.parse(localStorage.getItem("hachi-conecta-demo-v1"));
+        const now = new Date().toISOString();
+        database.feedbacks.push(
+            { idFeedback: 1001, idUsuario: 9001, nota: 5, comentario: "Manga fresca e deliciosa.", dataHora: now },
+            { idFeedback: 1002, idUsuario: 9004, nota: 4, comentario: "Atendimento muito gentil.", dataHora: now },
+            { idFeedback: 1003, idUsuario: 9005, nota: 5, comentario: "Voltarei para provar o matcha.", dataHora: now },
+            { idFeedback: 1004, idUsuario: 9007, nota: 4, comentario: "O recheio estava ótimo.", dataHora: now }
+        );
+        database.users.find((user) => Number(user.idUsuario) === 9001).criadoEm = now;
+        localStorage.setItem("hachi-conecta-demo-v1", JSON.stringify(database));
+
         document.querySelector('[data-action="logout"]').click();
         const adminDemo = await waitForElement('[data-demo-role="admin"]');
         adminDemo.click();
-        await waitForElement('[data-admin-tab="clients"]');
+        await waitForElement('[data-action="generate-dashboard-report"]');
+
+        expect(document.querySelector(".dashboard-rating-card #rating-notes-heading").textContent).toBe("Notas das avaliações");
+        expect(document.querySelector(".kpi-card:nth-child(2) .kpi-value").textContent).toBe("1");
+        expect(document.querySelector(".kpi-card:nth-child(2) .kpi-trend").classList.contains("is-positive")).toBe(true);
+        expect(document.querySelectorAll(".feedback-item")).toHaveLength(5);
+        expect(document.querySelector(".location-list").querySelectorAll(".location-row")).toHaveLength(5);
+
+        document.querySelector('[data-action="toggle-feedback-list"]').click();
+        expect(document.querySelectorAll(".feedback-item").length).toBeGreaterThan(5);
+        document.querySelector('[data-action="toggle-location-list"]').click();
+        expect(document.querySelector(".location-list").querySelectorAll(".location-row").length).toBeGreaterThan(5);
+
+        const feedbackSearch = document.querySelector("[data-feedback-search]");
+        feedbackSearch.value = "manga";
+        feedbackSearch.dispatchEvent(new Event("input", { bubbles: true }));
+        expect(document.querySelectorAll(".feedback-item")).toHaveLength(1);
+        expect(document.querySelector(".feedback-item").textContent).toContain("Manga fresca e deliciosa.");
+
+        feedbackSearch.value = "";
+        feedbackSearch.dispatchEvent(new Event("input", { bubbles: true }));
+        const originalCreateObjectUrl = Object.getOwnPropertyDescriptor(URL, "createObjectURL");
+        const createObjectUrl = vi.fn(() => "blob:local-report");
+        Object.defineProperty(URL, "createObjectURL", { configurable: true, value: createObjectUrl });
+        let reportName = "";
+        const clickDownload = vi.spyOn(HTMLAnchorElement.prototype, "click").mockImplementation(function () {
+            reportName = this.download;
+        });
+        document.querySelector('[data-action="generate-dashboard-report"]').click();
+        expect(createObjectUrl).toHaveBeenCalledOnce();
+        expect(reportName).toMatch(/^hachi-relatorio-\d{4}-\d{2}-\d{2}\.csv$/);
+        clickDownload.mockRestore();
+        if (originalCreateObjectUrl) Object.defineProperty(URL, "createObjectURL", originalCreateObjectUrl);
+        else delete URL.createObjectURL;
+
         document.querySelector('[data-admin-tab="clients"]').click();
 
         const ageFilter = await waitForElement('[data-client-filter="age"]');

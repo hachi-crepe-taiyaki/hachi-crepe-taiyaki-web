@@ -35,6 +35,9 @@
         selectedCategory: "Todas",
         selectedPeriod: 7,
         selectedRatingFilter: "Todas",
+        feedbackSearch: "",
+        showAllFeedback: false,
+        showAllLocations: false,
         adminTab: "overview",
         clientSearch: "",
         clientLoyaltyFilter: "all",
@@ -877,17 +880,22 @@
     function dashboardScreen() {
         const dashboard = state.dashboard || { users: [], feedbacks: [], redemptions: [], stampEvents: [] };
         const users = dashboard.users.filter((user) => Number(user.funcao) === 0 && Number(user.statusUsuario) === 1);
+        const periodDays = Number(state.selectedPeriod);
         const periodFeedbacks = withinSelectedPeriod(dashboard.feedbacks);
         const periodStamps = withinSelectedPeriod(dashboard.stampEvents || []);
         const periodRedemptions = withinSelectedPeriod(dashboard.redemptions);
-        const average = periodFeedbacks.length
-            ? (periodFeedbacks.reduce((sum, item) => sum + Number(item.nota || 0), 0) / periodFeedbacks.length).toFixed(1)
-            : "0,0";
+        const newCustomers = filterByPeriod(users, "criadoEm", periodDays);
+        const previousFeedbacks = filterByPeriod(dashboard.feedbacks, "dataHora", periodDays, 1);
+        const previousStamps = filterByPeriod(dashboard.stampEvents || [], "dataHora", periodDays, 1);
+        const previousRedemptions = filterByPeriod(dashboard.redemptions, "dataHora", periodDays, 1);
+        const previousCustomers = filterByPeriod(users, "criadoEm", periodDays, 1);
+        const average = averageRating(periodFeedbacks);
+        const previousAverage = averageRating(previousFeedbacks);
         const metrics = [
-            ["Avaliação média", `${average} / 5`, periodFeedbacks.length ? `${periodFeedbacks.length} avaliações no período` : "Nenhuma avaliação neste período"],
-            ["Total de clientes", users.length.toLocaleString("pt-BR"), "Clientes ativos cadastrados localmente"],
-            ["Selos emitidos", periodStamps.length.toLocaleString("pt-BR"), "Compras elegíveis registradas no período"],
-            ["Resgates realizados", periodRedemptions.length.toLocaleString("pt-BR"), "Recompensas trocadas no período"]
+            { label: "Avaliação média", value: `${average.toLocaleString("pt-BR", { minimumFractionDigits: 1, maximumFractionDigits: 1 })} / 5`, note: `${periodFeedbacks.length} ${periodFeedbacks.length === 1 ? "avaliação" : "avaliações"} no período`, trend: metricTrend(average, previousAverage, periodDays, true) },
+            { label: "Clientes novos", value: newCustomers.length.toLocaleString("pt-BR"), note: periodDays ? `Cadastros nos últimos ${periodDays} dias` : "Cadastros desde o início", trend: metricTrend(newCustomers.length, previousCustomers.length, periodDays) },
+            { label: "Selos emitidos", value: periodStamps.length.toLocaleString("pt-BR"), note: "Compras elegíveis registradas no período", trend: metricTrend(periodStamps.length, previousStamps.length, periodDays) },
+            { label: "Resgates realizados", value: periodRedemptions.length.toLocaleString("pt-BR"), note: "Recompensas trocadas no período", trend: metricTrend(periodRedemptions.length, previousRedemptions.length, periodDays) }
         ];
         return `${header({ authenticated: true, admin: true })}
         <main id="main-content" class="page page-wide" role="main">
@@ -906,7 +914,9 @@
 
     function dashboardOverview({ dashboard, users, periodFeedbacks, periodStamps, periodRedemptions, metrics }) {
         const locations = locationSummary(users);
-        const recent = filteredFeedbacks(dashboard.feedbacks);
+        const visibleLocations = state.showAllLocations ? locations : locations.slice(0, 5);
+        const matchingFeedbacks = filteredFeedbacks(dashboard.feedbacks);
+        const recent = state.showAllFeedback ? matchingFeedbacks : matchingFeedbacks.slice(0, 5);
         return `<div class="alert alert-warning"><p>Os dados são salvos neste navegador; perfis e interações iniciais são exemplos fictícios.</p></div>
             ${state.dashboardLoading ? `<div class="grid grid-4">${Array.from({ length: 4 }, () => `<div class="card stack"><div class="skeleton" style="width:45%"></div><div class="skeleton" style="height:34px"></div><div class="skeleton"></div></div>`).join("")}</div>` : ""}
             ${state.dashboardError ? `<div class="alert alert-error" role="alert"><p>${escapeHtml(state.dashboardError)} <button class="btn btn-quiet btn-small" type="button" data-action="refresh-dashboard">Tentar novamente</button></p></div>` : ""}
@@ -914,34 +924,34 @@
                 <h2 class="sr-only">Período dos indicadores</h2>
                 <div class="period-pills" aria-label="Período dos feedbacks">
                     ${[7, 30, 90, 0].map((days) => `<button class="pill" type="button" data-period="${days}" aria-pressed="${state.selectedPeriod === days}">${days ? `${days} dias` : "Todos"}</button>`).join("")}
-                </div><span class="meta">${periodFeedbacks.length} avaliações · ${periodStamps.length} selos · ${periodRedemptions.length} resgates</span>
+                </div><div class="dashboard-actions"><span class="meta">${periodFeedbacks.length} ${periodFeedbacks.length === 1 ? "avaliação" : "avaliações"} · ${periodStamps.length} selos · ${periodRedemptions.length} resgates</span><button class="btn btn-secondary btn-small" type="button" data-action="generate-dashboard-report">Gerar relatório</button></div>
             </div>
             <section class="grid grid-4" aria-label="Indicadores">
-                ${metrics.map(([label, value, note]) => `<article class="card kpi-card"><p class="kpi-label">${escapeHtml(label)}</p><p class="kpi-value">${escapeHtml(value)}</p><p class="kpi-note">${escapeHtml(note)}</p></article>`).join("")}
+                ${metrics.map((metric) => `<article class="card kpi-card"><p class="kpi-label">${escapeHtml(metric.label)}</p><p class="kpi-value">${escapeHtml(metric.value)}</p><p class="kpi-note">${escapeHtml(metric.note)}</p><div class="kpi-trend ${metric.trend.className}" aria-label="${escapeHtml(metric.trend.label)}"><span aria-hidden="true">${metric.trend.icon}</span><span>${escapeHtml(metric.trend.text)}</span></div></article>`).join("")}
+            </section>
+            <section class="card dashboard-rating-card" aria-labelledby="rating-notes-heading">
+                <div class="dashboard-rating-heading"><div><p class="eyebrow">Experiência do cliente</p><h2 id="rating-notes-heading">Notas das avaliações</h2></div><span class="badge">${periodFeedbacks.length} ${periodFeedbacks.length === 1 ? "avaliação" : "avaliações"} no período</span></div>
+                ${ratingDistributionMarkup(periodFeedbacks)}
             </section>
             <div class="dashboard-content">
                 <section class="card stack" aria-labelledby="feedback-heading">
-                    <div class="filter-row"><div><p class="eyebrow">A voz dos clientes</p><h2 id="feedback-heading">Feedbacks recebidos</h2></div><span class="badge">${recent.length} ${state.selectedRatingFilter === "Todas" ? "no período" : "correspondentes"}</span></div>
+                    <div class="filter-row"><div><p class="eyebrow">A voz dos clientes</p><h2 id="feedback-heading">Feedbacks recebidos</h2></div><span class="badge">${matchingFeedbacks.length} ${state.selectedRatingFilter === "Todas" ? "no período" : "correspondentes"}</span></div>
+                    <div class="field feedback-search-field"><label for="feedback-search">Pesquisar nos comentários</label><input id="feedback-search" class="input" type="search" data-focus-key="feedback-search" data-feedback-search value="${escapeHtml(state.feedbackSearch)}" placeholder="Digite uma palavra ou trecho do comentário" autocomplete="off"></div>
                     <div class="rating-filters" aria-label="Filtrar por nota">
                         ${["Todas", 5, 4, 3, 2, 1].map((rating) => `<button class="pill" type="button" data-rating-filter="${rating}" aria-pressed="${String(state.selectedRatingFilter) === String(rating)}">${rating === "Todas" ? "Todas" : `${rating} estrela(s)`}</button>`).join("")}
                     </div>
                     ${recent.length
                         ? `<div class="feedback-list">${recent.map((item) => feedbackCard(item, users)).join("")}</div>`
-                        : `<div class="empty-state"><strong>Nenhum feedback registrado neste período.</strong><span>As avaliações enviadas aparecerão aqui.</span></div>`}
+                        : `<div class="empty-state"><strong>${state.feedbackSearch ? "Nenhum comentário encontrado." : "Nenhum feedback registrado neste período."}</strong><span>${state.feedbackSearch ? "Tente outra palavra ou limpe a busca." : "As avaliações enviadas aparecerão aqui."}</span></div>`}
+                    ${matchingFeedbacks.length > 5 ? `<button class="btn btn-quiet btn-small list-toggle" type="button" data-focus-key="feedback-list-toggle" data-action="toggle-feedback-list">${state.showAllFeedback ? "Mostrar menos" : `Mostrar todos (${matchingFeedbacks.length})`}</button>` : ""}
                 </section>
                 <aside class="stack">
                     <section class="card">
                         <p class="eyebrow">Perfil dos clientes</p>
                         <h2>Distribuição por cidade e região</h2>
                         ${locations.length
-                            ? `<div class="location-list">${locations.map((item) => `<div class="location-row"><div class="location-label"><span>${escapeHtml(item.name)}</span><strong>${item.percent}%</strong></div><div class="location-track" role="img" aria-label="${escapeHtml(item.name)}: ${item.percent}%"><div class="location-fill" style="width:${item.percent}%"></div></div><span class="meta">${item.count} cliente(s)</span></div>`).join("")}</div>`
+                            ? `<div class="location-list">${visibleLocations.map((item) => `<div class="location-row"><div class="location-label"><span>${escapeHtml(item.name)}</span><strong>${item.percent}%</strong></div><div class="location-track" role="img" aria-label="${escapeHtml(item.name)}: ${item.percent}%"><div class="location-fill" style="width:${item.percent}%"></div></div><span class="meta">${item.count} cliente(s)</span></div>`).join("")}</div>${locations.length > 5 ? `<button class="btn btn-quiet btn-small list-toggle" type="button" data-focus-key="location-list-toggle" data-action="toggle-location-list">${state.showAllLocations ? "Mostrar menos" : `Mostrar todos (${locations.length})`}</button>` : ""}`
                             : `<p class="muted">Ainda não há localização disponível nos cadastros.</p>`}
-                    </section>
-                    <section class="card">
-                        <p class="eyebrow">Experiência do cliente</p>
-                        <h2>Notas das avaliações</h2>
-                        ${ratingDistributionMarkup(periodFeedbacks)}
-                        <p class="field-hint">Distribuição dos feedbacks por nota neste período.</p>
                     </section>
                 </aside>
             </div>
@@ -1180,24 +1190,115 @@
 
     function filteredFeedbacks(feedbacks) {
         const periodIds = new Set(withinSelectedPeriod(feedbacks));
+        const query = normalizeText(state.feedbackSearch);
         return feedbacks
             .filter((item) => {
                 const matchesPeriod = periodIds.has(item);
                 const matchesRating = state.selectedRatingFilter === "Todas" ||
                     Number(item.nota) === Number(state.selectedRatingFilter);
-                return matchesPeriod && matchesRating;
+                const matchesSearch = !query || normalizeText(item.comentario || "").includes(query);
+                return matchesPeriod && matchesRating && matchesSearch;
             })
             .sort((a, b) => new Date(b.dataHora) - new Date(a.dataHora));
     }
 
     function withinSelectedPeriod(feedbacks) {
-        if (Number(state.selectedPeriod) === 0) return feedbacks.filter((item) => item && !Number.isNaN(new Date(item.dataHora || 0).getTime()));
-        const cutoff = new Date();
-        cutoff.setDate(cutoff.getDate() - state.selectedPeriod);
-        return feedbacks.filter((item) => {
-            const date = new Date(item.dataHora || 0);
-            return !Number.isNaN(date.getTime()) && date >= cutoff;
+        return filterByPeriod(feedbacks, "dataHora", Number(state.selectedPeriod));
+    }
+
+    function filterByPeriod(items, dateField, days, offset = 0, now = new Date()) {
+        if (Number(days) === 0) {
+            return offset === 0 ? items.filter((item) => item?.[dateField] && !Number.isNaN(new Date(item[dateField]).getTime())) : [];
+        }
+        const end = new Date(now);
+        end.setDate(end.getDate() - Number(days) * offset);
+        const start = new Date(end);
+        start.setDate(start.getDate() - Number(days));
+        return items.filter((item) => {
+            if (!item?.[dateField]) return false;
+            const date = new Date(item[dateField]);
+            return !Number.isNaN(date.getTime()) && date >= start && date < end;
         });
+    }
+
+    function averageRating(feedbacks) {
+        const ratings = feedbacks.map((item) => Number(item.nota)).filter((rating) => Number.isFinite(rating) && rating >= 1 && rating <= 5);
+        return ratings.length ? ratings.reduce((sum, rating) => sum + rating, 0) / ratings.length : 0;
+    }
+
+    function metricTrend(current, previous, periodDays, isAverage = false) {
+        if (!periodDays) {
+            return { icon: "—", text: "Sem comparação no período total", className: "is-neutral", label: "Sem comparação no período total" };
+        }
+        const difference = current - previous;
+        if (difference === 0) {
+            return { icon: "→", text: "Sem variação vs. período anterior", className: "is-neutral", label: "Sem variação em relação ao período anterior" };
+        }
+        const improved = difference > 0;
+        const icon = improved ? "↑" : "↓";
+        const className = improved ? "is-positive" : "is-negative";
+        const delta = isAverage
+            ? `${difference > 0 ? "+" : ""}${difference.toLocaleString("pt-BR", { minimumFractionDigits: 1, maximumFractionDigits: 1 })} ponto(s)`
+            : `${difference > 0 ? "+" : ""}${difference.toLocaleString("pt-BR")} vs. período anterior`;
+        const label = `${improved ? "Melhorou" : "Piorou"}: ${delta}`;
+        return { icon, text: delta, className, label };
+    }
+
+    function generateDashboardReport() {
+        const dashboard = state.dashboard;
+        if (!dashboard) {
+            showToast("Os dados do painel ainda não foram carregados. Tente novamente.", "error");
+            return;
+        }
+        if (typeof URL.createObjectURL !== "function") {
+            showToast("Este navegador não permite baixar o relatório.", "error");
+            return;
+        }
+
+        const days = Number(state.selectedPeriod);
+        const customers = (dashboard.users || []).filter((user) => Number(user.funcao) === 0 && Number(user.statusUsuario) === 1);
+        const periodFeedbacks = withinSelectedPeriod(dashboard.feedbacks || []);
+        const periodStamps = filterByPeriod(dashboard.stampEvents || [], "dataHora", days);
+        const periodRedemptions = filterByPeriod(dashboard.redemptions || [], "dataHora", days);
+        const periodCustomers = filterByPeriod(customers, "criadoEm", days);
+        const previousFeedbacks = filterByPeriod(dashboard.feedbacks || [], "dataHora", days, 1);
+        const previousStamps = filterByPeriod(dashboard.stampEvents || [], "dataHora", days, 1);
+        const previousRedemptions = filterByPeriod(dashboard.redemptions || [], "dataHora", days, 1);
+        const previousCustomers = filterByPeriod(customers, "criadoEm", days, 1);
+        const average = averageRating(periodFeedbacks);
+        const previousAverage = averageRating(previousFeedbacks);
+        const periodLabel = days ? `Últimos ${days} dias` : "Todos os períodos";
+        const rows = [
+            ["Relatório Hachi Conecta", "Período", periodLabel, ""],
+            ["Indicadores", "Avaliação média", average.toFixed(1), metricTrend(average, previousAverage, days, true).label],
+            ["Indicadores", "Clientes novos", periodCustomers.length, metricTrend(periodCustomers.length, previousCustomers.length, days).label],
+            ["Indicadores", "Selos emitidos", periodStamps.length, metricTrend(periodStamps.length, previousStamps.length, days).label],
+            ["Indicadores", "Resgates realizados", periodRedemptions.length, metricTrend(periodRedemptions.length, previousRedemptions.length, days).label],
+            [],
+            ["Feedbacks", "Data", "Nota", "Comentário"]
+        ];
+        filteredFeedbacks(dashboard.feedbacks || []).forEach((item) => {
+            const user = customers.find((entry) => Number(entry.idUsuario) === Number(item.idUsuario));
+            rows.push(["Feedbacks", formatDate(item.dataHora), `${item.nota}/5`, `${user?.nome || "Cliente"}: ${item.comentario || ""}`]);
+        });
+        rows.push([], ["Distribuição por cidade e região", "Clientes", "Participação", ""]);
+        locationSummary(customers).forEach((item) => rows.push(["Localização", item.name, item.count, `${item.percent}%`]));
+
+        const csv = ["Seção;Item;Valor;Detalhes", ...rows.map((row) => row.map(csvCell).join(";"))].join("\r\n");
+        const blob = new Blob(["\uFEFF", csv], { type: "text/csv;charset=utf-8" });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement("a");
+        link.href = url;
+        link.download = `hachi-relatorio-${new Date().toISOString().slice(0, 10)}.csv`;
+        link.click();
+        window.setTimeout(() => URL.revokeObjectURL(url), 0);
+        showToast("Relatório CSV gerado com os filtros atuais.", "success");
+    }
+
+    function csvCell(value) {
+        let text = String(value ?? "");
+        if (/^[=+\-@]/.test(text)) text = `'${text}`;
+        return `"${text.replace(/"/g, '""')}"`;
     }
 
     function locationSummary(users) {
@@ -1209,8 +1310,7 @@
         const total = [...counts.values()].reduce((sum, count) => sum + count, 0);
         return [...counts.entries()]
             .map(([name, count]) => ({ name, count, percent: total ? Math.round((count / total) * 100) : 0 }))
-            .sort((a, b) => b.count - a.count)
-            .slice(0, 6);
+            .sort((a, b) => b.count - a.count);
     }
 
     function ratingDistributionMarkup(feedbacks) {
@@ -2290,11 +2390,13 @@
         }
         if (target.dataset.period) {
             state.selectedPeriod = Number(target.dataset.period);
+            state.showAllFeedback = false;
             render();
             return;
         }
         if (target.dataset.ratingFilter) {
             state.selectedRatingFilter = target.dataset.ratingFilter;
+            state.showAllFeedback = false;
             render();
             return;
         }
@@ -2335,6 +2437,17 @@
                 state.clientRatingFilter = "all";
                 state.clientAgeFilter = "all";
                 render();
+                break;
+            case "toggle-feedback-list":
+                state.showAllFeedback = !state.showAllFeedback;
+                render({ preserveFocus: target });
+                break;
+            case "toggle-location-list":
+                state.showAllLocations = !state.showAllLocations;
+                render({ preserveFocus: target });
+                break;
+            case "generate-dashboard-report":
+                generateDashboardReport();
                 break;
             case "scan-code":
                 openModal("scan");
@@ -2402,6 +2515,12 @@
     }
 
     function handleInput(event) {
+        if (event.target.matches("[data-feedback-search]")) {
+            state.feedbackSearch = event.target.value;
+            state.showAllFeedback = false;
+            render({ preserveFocus: event.target });
+            return;
+        }
         if (event.target.matches("[data-client-search]")) {
             state.clientSearch = event.target.value;
             render({ preserveFocus: event.target });
