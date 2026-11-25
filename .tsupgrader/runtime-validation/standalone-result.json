@@ -1,0 +1,102 @@
+{
+  "planHash": "52024d5fb205fad05a67683f87d65502ddf36e463ed1da0f3bb1952fd9db3c9c",
+  "phase": "standalone",
+  "recordedAtUtc": "2026-11-25T21:48:56.5868536Z",
+  "retryCount": 1,
+  "resetBaseline": false,
+  "complete": true,
+  "result": {
+    "setupSucceeded": true,
+    "setupDurationMs": 0,
+    "setupFailureOutput": null,
+    "assertions": [
+      {
+        "name": "production-build",
+        "kind": "process",
+        "verificationMethod": "exit-code",
+        "passed": true,
+        "timedOut": false,
+        "skipped": false,
+        "skippedReason": null,
+        "exitCode": 0,
+        "outputSample": "\r\n\u003E hachi-conecta-web@1.0.0 build\r\n\u003E vite build\r\n\r\n\u001B[36mvite v6.4.6 \u001B[32mbuilding for production...\u001B[36m\u001B[39m\r\ntransforming...\r\n\u001B[32m\u2713\u001B[39m 4 modules transformed.\r\nrendering chunks...\r\ncomputing gzip size...\r\n\u001B[2mdist/\u001B[22m\u001B[32mindex.html                     \u001B[39m\u001B[1m\u001B[2m    0.91 kB\u001B[22m\u001B[1m\u001B[22m\u001B[2m \u2502 gzip:  0.50 kB\u001B[22m\r\n\u001B[2mdist/\u001B[22m\u001B[32massets/HachiLogo-BWqSVIt-.png  \u001B[39m\u001B[1m\u001B[2m1,128.16 kB\u001B[22m\u001B[1m\u001B[22m\r\n\u001B[2mdist/\u001B[22m\u001B[35massets/index-brjx7EcV.css      \u001B[39m\u001B[1m\u001B[2m   43.27 kB\u001B[22m\u001B[1m\u001B[22m\u001B[2m \u2502 gzip:  9.26 kB\u001B[22m\r\n\u001B[2mdist/\u001B[22m\u001B[36massets/index-Gtz8JdzD.js       \u001B[39m\u001B[1m\u001B[2m  107.77 kB\u001B[22m\u001B[1m\u001B[22m\u001B[2m \u2502 gzip: 31.32 kB\u001B[22m\r\n\u001B[32m\u2713 built in 225ms\u001B[39m\r\n",
+        "durationMs": 1087
+      },
+      {
+        "name": "tests-pass",
+        "kind": "process",
+        "verificationMethod": "test-results",
+        "passed": true,
+        "timedOut": false,
+        "skipped": false,
+        "skippedReason": null,
+        "exitCode": 0,
+        "outputSample": "\r\n\u003E hachi-conecta-web@1.0.0 test\r\n\u003E vitest run --environment jsdom\r\n\r\n\r\n RUN  v4.1.12 C:/Users/fifa1/OneDrive/Desktop/Hachi/hachi-crepe-taiyaki-web\r\n\r\n\r\n Test Files  1 passed (1)\r\n      Tests  2 passed (2)\r\n   Start at  18:48:53\r\n   Duration  2.52s (transform 84ms, setup 0ms, import 33ms, tests 1.91s, environment 431ms)\r\n\r\n",
+        "durationMs": 3391,
+        "testResults": {
+          "testFramework": "vitest",
+          "runnerDetectedFrom": "package_json",
+          "testsTotal": 2,
+          "testsPassed": 2,
+          "testsFailed": 0,
+          "testsSkipped": 0,
+          "parseFailed": false
+        }
+      },
+      {
+        "name": "dev-server-serves-home",
+        "kind": "http-probe",
+        "verificationMethod": "http-status",
+        "passed": true,
+        "timedOut": false,
+        "skipped": false,
+        "skippedReason": null,
+        "exitCode": null,
+        "outputSample": "HTTP 200\n\u003C!doctype html\u003E\r\n\u003Chtml lang=\u0022pt-BR\u0022\u003E\r\n\u003Chead\u003E\n  \u003Cscript type=\u0022module\u0022 src=\u0022/@vite/client\u0022\u003E\u003C/script\u003E\n\r\n    \u003Cmeta charset=\u0022utf-8\u0022\u003E\r\n    \u003Cmeta name=\u0022viewport\u0022 content=\u0022width=device-width, initial-scale=1\u0022\u003E\r\n    \u003Cmeta name=\u0022theme-color\u0022 content=\u0022#fdf9f2\u0022\u003E\r\n    \u003Cmeta name=\u0022description\u0022 content=\u0022Hachi Conecta: fidelidade e relacionamento com a Hachi Crepe \u0026 Taiyaki.\u0022\u003E\r\n    \u003Ctitle\u003EHachi Conecta | Fidelidade\u003C/title\u003E\r\n    \u003Clink rel=\u0022icon\u0022 type=\u0022image/png\u0022 href=\u0022assets/HachiLogo.png\u0022\u003E\r\n    \u003Clink rel=\u0022stylesheet\u0022 href=\u0022app.css\u0022\u003E\r\n    \u003Cscript type=\u0022module\u0022 src=\u0022/app.js\u0022\u003E\u003C/script\u003E\r\n\u003C/head\u003E\r\n\u003Cbody\u003E\r\n    \u003Ca class=\u0022skip-link\u0022 href=\u0022#main-content\u0022\u003EPular para o conte\u00FAdo\u003C/a\u003E\r\n    \u003Cdiv id=\u0022app\u0022 class=\u0022app-shell\u0022\u003E\u003C/div\u003E\r\n    \u003Cdiv id=\u0022toast-region\u0022 class=\u0022toast-region\u0022 aria-live=\u0022polite\u0022 aria-atomic=\u0022true\u0022\u003E\u003C/div\u003E\r\n    \u003Cnoscript\u003EAtive o JavaScript para usar o Hachi Conecta.\u003C/noscript\u003E\r\n\u003C/body\u003E\r\n\u003C/html\u003E\r\n",
+        "durationMs": 19
+      }
+    ],
+    "executions": [
+      {
+        "source": "production-build",
+        "resolvedExecutable": "C:\\Program Files\\nodejs\\npm.CMD",
+        "args": [
+          "run",
+          "build"
+        ],
+        "cwd": "C:\\Users\\fifa1\\OneDrive\\Desktop\\Hachi\\hachi-crepe-taiyaki-web",
+        "env": {},
+        "prependPath": [],
+        "platform": "win32"
+      },
+      {
+        "source": "tests-pass",
+        "resolvedExecutable": "C:\\Program Files\\nodejs\\npm.CMD",
+        "args": [
+          "test"
+        ],
+        "cwd": "C:\\Users\\fifa1\\OneDrive\\Desktop\\Hachi\\hachi-crepe-taiyaki-web",
+        "env": {},
+        "prependPath": [],
+        "platform": "win32"
+      },
+      {
+        "source": "dev-server-serves-home",
+        "resolvedExecutable": "C:\\Program Files\\nodejs\\npm.CMD",
+        "args": [
+          "run",
+          "dev",
+          "--",
+          "--host",
+          "127.0.0.1",
+          "--port",
+          "5175"
+        ],
+        "cwd": "C:\\Users\\fifa1\\OneDrive\\Desktop\\Hachi\\hachi-crepe-taiyaki-web",
+        "env": {},
+        "prependPath": [],
+        "platform": "win32"
+      }
+    ]
+  }
+}

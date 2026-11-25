@@ -17,7 +17,7 @@
     const MIN_PURCHASE = 40;
     const STAMPS_FOR_REWARD = 12;
     const MODAL_CLOSE_DURATION = 220;
-    const DEMO_SCHEMA_VERSION = 4;
+    const DEMO_SCHEMA_VERSION = 5;
 
     const routeNames = new Set([
         "home", "register-1", "register-2", "login", "loyalty",
@@ -31,7 +31,7 @@
         busy: false,
         alert: null,
         registerDraft: loadRegisterDraft(),
-        selectedRating: 5,
+        selectedRating: 0,
         selectedCategory: "Todas",
         selectedPeriod: 7,
         selectedRatingFilter: "Todas",
@@ -269,7 +269,6 @@
             elegivelResgate,
             tipo
         });
-        const baseCrepe = "Monte o Seu Crepe (Base)";
         const harajuku = "Crepes Doces — Harajuku Style";
         const taiyaki = "Taiyaki";
         const savory = "Crepe Japonês Salgado";
@@ -277,17 +276,6 @@
         const drinks = "Frappes, Drinks Gelados, Cafés e Bebidas";
         const paidExtra = "Adicional pago · não elegível para cortesia";
         const products = [
-            menuItem(1, "Crepe Especial", 22, baseCrepe, "Até 3 frutas, 1 cobertura e 1 sorvete (acompanha chantilly). Escolha entre frutas: morango, banana, manga, pêssego e kiwi; coberturas: chocolate, morango, caramelo e leite condensado; sorvetes: creme, morango, chocolate e flocos. A massa tradicional contém leite, ovo, açúcar e trigo; opção vegana/sem glúten por R$ 2,50."),
-            menuItem(2, "Crepe Tradicional", 16, baseCrepe, "Até 3 frutas e 1 cobertura (acompanha chantilly). Escolha entre frutas: morango, banana, manga, pêssego e kiwi; coberturas: chocolate, morango, caramelo e leite condensado. A massa tradicional contém leite, ovo, açúcar e trigo; opção vegana/sem glúten por R$ 2,50."),
-            menuItem(3, "Creme de Avelã", 6, baseCrepe, paidExtra, false, "Adicional"),
-            menuItem(4, "Doce de Leite", 5, baseCrepe, paidExtra, false, "Adicional"),
-            menuItem(5, "Creme de Baunilha", 5, baseCrepe, paidExtra, false, "Adicional"),
-            menuItem(6, "Sorvete de Creme", 10, baseCrepe, paidExtra, false, "Adicional"),
-            menuItem(7, "Sorvete de Morango", 10, baseCrepe, paidExtra, false, "Adicional"),
-            menuItem(8, "Sorvete de Chocolate", 10, baseCrepe, paidExtra, false, "Adicional"),
-            menuItem(9, "Sorvete de Flocos", 10, baseCrepe, paidExtra, false, "Adicional"),
-            menuItem(10, "Sorvete de Matchá", 12, baseCrepe, paidExtra, false, "Adicional"),
-            menuItem(11, "Massa Vegana / Sem Glúten", 2.5, baseCrepe, "Opção de massa especial para o crepe. Adicional de R$ 2,50; não elegível para cortesia.", false, "Adicional"),
             menuItem(12, "Hachi Avelã", 23, harajuku, "Morango, banana e creme de avelã.", true),
             menuItem(13, "Hachi Brownie", 23, harajuku, "Morango, banana, brownie, chantilly e cobertura de chocolate.", true),
             menuItem(14, "Hachi Tentação", 23, harajuku, "Morango, chantilly sabor café, creme de avelã e canela.", true),
@@ -552,7 +540,7 @@
                     : [["home", "Início"], ["loyalty", "Meu cartão"], ["catalog", "Cardápio"]];
         const navigation = navItems.map(([route, label]) =>
             `<a class="nav-link" href="#${route}" data-route="${route}" ${state.screen === route ? 'aria-current="page"' : ""}>${label}</a>`
-        ).join("") + (isAdmin() ? `<button class="nav-link nav-link-button" type="button" data-action="admin-clients" aria-current="${state.screen === "dashboard" && state.adminTab === "clients" ? "page" : "false"}">Clientes &amp; Insights</button>` : "");
+        ).join("") + (isAdmin() ? `<button class="nav-link nav-link-button" type="button" data-action="admin-clients" aria-current="${state.screen === "dashboard" && state.adminTab === "clients" ? "page" : "false"}">Clientes</button>` : "");
         return `<header class="site-header" role="banner">
             <div class="header-actions">
                 ${back ? `<button class="btn btn-quiet btn-small" type="button" data-route="${escapeHtml(back)}" aria-label="Voltar para a tela anterior">← Voltar</button>` : ""}
@@ -565,7 +553,15 @@
             <nav class="site-nav" aria-label="Navegação principal">${navigation}</nav>
             <div class="header-actions">
                 ${userControl}
-                <span class="language-chip" aria-label="Idioma português do Brasil">pt-BR</span>
+                <button class="header-help" type="button" data-action="screen-help" aria-label="Como usar esta tela" title="Como usar esta tela"><span aria-hidden="true">?</span><span>Como usar</span></button>
+                <details class="header-language">
+                    <summary aria-label="Idioma atual: Português do Brasil">
+                        <span class="language-caption">Idioma</span>
+                        <svg class="language-flag" viewBox="0 0 24 16" aria-hidden="true"><rect width="24" height="16" rx="2" fill="#168447"/><path d="m12 2 9 6-9 6-9-6 9-6Z" fill="#F5D34F"/><circle cx="12" cy="8" r="3.3" fill="#2453A6"/></svg>
+                        <strong>PT-BR</strong><span class="language-chevron" aria-hidden="true">⌄</span>
+                    </summary>
+                    <div class="language-popover"><span>Idioma disponível</span><strong><svg class="language-flag" viewBox="0 0 24 16" aria-hidden="true"><rect width="24" height="16" rx="2" fill="#168447"/><path d="m12 2 9 6-9 6-9-6 9-6Z" fill="#F5D34F"/><circle cx="12" cy="8" r="3.3" fill="#2453A6"/></svg> Português (Brasil)</strong><small>PT-BR · idioma atual</small></div>
+                </details>
                 <span class="demo-badge">Modo local</span>
                 ${authenticated ? `<button class="btn btn-quiet btn-small" type="button" data-action="logout">Sair</button>` : ""}
             </div>
@@ -598,20 +594,38 @@
                         <button class="btn btn-quiet" type="button" data-route="catalog">Explorar cardápio</button>
                     </div>
                 </div>
-                <div class="home-hero-art" aria-hidden="true"><img src="assets/HachiLogo.png" alt=""><span class="hero-art-caption">Feito com carinho<br>na Liberdade</span></div>
+                <div class="home-hero-art" aria-hidden="true"><img src="assets/hachi-hero.svg" alt=""><span class="hero-art-caption">Feito com carinho<br>na Liberdade</span></div>
             </section>
             <section class="home-intro section-block" aria-labelledby="about-title">
                 <div class="section-heading"><div><p class="eyebrow">A casa Hachi</p><h2 id="about-title">Tradição, criatividade e aconchego desde 2011.</h2></div><p>Na Rua Galvão Bueno, em um dos polos culturais e gastronômicos asiáticos mais queridos do mundo, cada visita é um convite para experimentar.</p></div>
                 <div class="specialty-grid">
-                    <article class="specialty-card"><span class="specialty-icon" aria-hidden="true">◉</span><p class="eyebrow">Feitos para passear</p><h3>Crepes japoneses</h3><p>Massa fina em formato de cone, opções doces, salgadas, vegetarianas e veganas. Frutas, chantili, sorvete, anko e mochi para combinar.</p></article>
-                    <article class="specialty-card"><span class="specialty-icon" aria-hidden="true">鯛</span><p class="eyebrow">Assados na hora</p><h3>Taiyakis</h3><p>O tradicional doce japonês em formato de peixe, com recheios de anko, creme de baunilha, avelã ou doce de leite.</p></article>
-                    <article class="specialty-card"><span class="specialty-icon" aria-hidden="true">✿</span><p class="eyebrow">Sabores da estação</p><h3>Bebidas &amp; sazonais</h3><p>Parfaits, cafés especiais e frappes, além de menus temáticos de Páscoa, Festa Junina, Dia dos Namorados, Halloween, Natal e Matsuris.</p></article>
+                    <article class="specialty-card"><img class="specialty-image" src="assets/menu-crepe.svg" alt="Ilustração de crepe japonês com frutas"><p class="eyebrow">Feitos para passear</p><h3>Crepes japoneses</h3><p>Massa fina em formato de cone, opções doces, salgadas, vegetarianas e veganas. Frutas, chantili, sorvete, anko e mochi para combinar.</p></article>
+                    <article class="specialty-card"><img class="specialty-image" src="assets/menu-taiyaki.svg" alt="Ilustração de taiyaki japonês em formato de peixe"><p class="eyebrow">Assados na hora</p><h3>Taiyakis</h3><p>O tradicional doce japonês em formato de peixe, com recheios de anko, creme de baunilha, avelã ou doce de leite.</p></article>
+                    <article class="specialty-card"><img class="specialty-image" src="assets/menu-drinks.svg" alt="Ilustração de bebidas geladas e frappes"><p class="eyebrow">Sabores da estação</p><h3>Bebidas &amp; sazonais</h3><p>Parfaits, cafés especiais e frappes, além de menus temáticos de Páscoa, Festa Junina, Dia dos Namorados, Halloween, Natal e Matsuris.</p></article>
                 </div>
+                <section class="loyalty-how" aria-labelledby="loyalty-how-title">
+                    <div class="section-heading"><div><p class="eyebrow">Hachi Conecta</p><h2 id="loyalty-how-title">Sua próxima cortesia em 5 passos</h2></div><p>Um jeito simples de transformar suas visitas em recompensas.</p></div>
+                    <ol class="loyalty-steps">
+                        <li><span>01</span><h3>Faça uma compra</h3><p>Compras a partir de R$ 40,00 contam para o programa.</p></li>
+                        <li><span>02</span><h3>Receba seu código</h3><p>A equipe gera um código ou QR Code após a compra elegível.</p></li>
+                        <li><span>03</span><h3>Valide no cartão</h3><p>Entre na sua conta e escaneie o QR Code ou digite o código.</p></li>
+                        <li><span>04</span><h3>Junte 12 selos</h3><p>Acompanhe seu progresso no cartão Hachi Conecta.</p></li>
+                        <li><span>05</span><h3>Escolha sua cortesia</h3><p>Troque os 12 selos por um item elegível do cardápio.</p></li>
+                    </ol>
+                </section>
                 <div class="visit-card">
                     <div><p class="eyebrow">Venha nos visitar</p><h3>Rua Galvão Bueno, 586</h3><p>Liberdade · São Paulo — SP</p></div>
                     <div><p class="eyebrow">Horário de funcionamento</p><p><strong>Quarta a sábado:</strong> 11h às 19h<br><strong>Domingo:</strong> 11h às 18h<br><strong>Segunda-feira:</strong> fechado</p></div>
                     <a class="btn btn-secondary" href="https://maps.google.com/?q=Rua+Galv%C3%A3o+Bueno+586+Liberdade+S%C3%A3o+Paulo" target="_blank" rel="noopener noreferrer">Ver localização</a>
                 </div>
+                <section class="seasonal-events" aria-labelledby="seasonal-events-title">
+                    <div class="section-heading"><div><p class="eyebrow">Encontros ao longo do ano</p><h2 id="seasonal-events-title">Temporadas especiais na Hachi</h2></div><p>A casa apresenta menus temáticos em datas especiais. Consulte a equipe para saber o que está disponível nesta temporada.</p></div>
+                    <div class="event-card-grid">
+                        <article class="event-card"><img src="assets/menu-crepe.svg" alt=""><div><p class="eyebrow">Edições sazonais</p><h3>Páscoa &amp; Festa Junina</h3><p>Sabores especiais para celebrar cada época do ano.</p></div></article>
+                        <article class="event-card"><img src="assets/menu-taiyaki.svg" alt=""><div><p class="eyebrow">Momentos para compartilhar</p><h3>Dia dos Namorados &amp; Halloween</h3><p>Criações temáticas que deixam a visita ainda mais especial.</p></div></article>
+                        <article class="event-card"><img src="assets/menu-drinks.svg" alt=""><div><p class="eyebrow">Celebrações da casa</p><h3>Natal &amp; Matsuris</h3><p>Uma pausa gostosa para aproveitar as festas e a cultura japonesa.</p></div></article>
+                    </div>
+                </section>
             </section>
             <section class="home-hub section-block" aria-labelledby="hub-title">
                 <div class="section-heading"><div><p class="eyebrow">Hachi Conecta</p><h2 id="hub-title">O que você deseja fazer agora?</h2></div><p>Escolha seu próximo passo. Os recursos de fidelidade funcionam localmente neste protótipo.</p></div>
@@ -690,7 +704,7 @@
 
     function loginScreen() {
         return `${header({ back: "home" })}
-        <main id="main-content" class="page page-narrow page-auth" role="main">
+        <main id="main-content" class="page page-narrow page-auth page-login" role="main">
             <div class="brand-heading">
                 <img src="assets/HachiLogo.png" alt="Hachi Crepe &amp; Taiyaki - logotipo oficial">
                 <h1>Entre na sua conta</h1>
@@ -835,8 +849,15 @@
             <section class="panel">
                 <div class="catalog-toolbar">
                     <div class="field catalog-search-field"><label for="catalog-search">Buscar no cardápio</label><input id="catalog-search" class="input" type="search" data-focus-key="catalog-search" data-catalog-search value="${escapeHtml(state.catalogSearch)}" placeholder="Produto, ingrediente ou categoria" autocomplete="off"></div>
-                    <div class="category-pills" aria-label="Filtrar por categoria">
+                    <div class="category-navigation" aria-label="Navegar pelas categorias do cardápio">
+                        <button class="category-scroll-button" type="button" data-action="scroll-categories" data-direction="previous" aria-label="Categorias anteriores">‹</button>
+                        <div class="category-pills" id="category-pills" role="group" aria-label="Filtrar por categoria">
                         ${categories.map((category) => `<button class="pill" type="button" data-category="${escapeHtml(category)}" aria-pressed="${selected === category}">${escapeHtml(category)}</button>`).join("")}
+                        </div>
+                        <button class="category-scroll-button" type="button" data-action="scroll-categories" data-direction="next" aria-label="Próximas categorias">›</button>
+                        <button class="category-search-button" type="button" data-action="focus-catalog-search" aria-label="Ir para a busca do cardápio" title="Buscar item">
+                            <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.8" cy="10.8" r="6.8"></circle><path d="m16 16 5 5"></path></svg><span>Buscar</span>
+                        </button>
                     </div>
                     <span class="demo-badge">${visibleProducts.length} ${visibleProducts.length === 1 ? "item" : "itens"}</span>
                 </div>
@@ -848,9 +869,10 @@
     }
 
     function productCard(product) {
-        const image = product.imagemUrl && safeHttpUrl(product.imagemUrl)
-            ? `<img loading="lazy" src="${escapeHtml(product.imagemUrl)}" alt="">`
-            : `<span aria-hidden="true">${productIcon(product.nomeCategoria)}</span>`;
+        const imageSource = product.imagemUrl && safeHttpUrl(product.imagemUrl)
+            ? product.imagemUrl
+            : productIllustration(product);
+        const image = `<img loading="lazy" src="${escapeHtml(imageSource)}" alt="Ilustração de ${escapeHtml(product.nome || "item do cardápio")}">`;
         const typeLabel = product.tipo === "Adicional" ? "Adicional pago" : product.elegivelResgate ? "Cortesia com 12 selos" : "Não elegível para cortesia";
         return `<article class="card product-card">
             <div class="product-art">${image}</div>
@@ -858,7 +880,16 @@
             <h3>${escapeHtml(product.nome || "Produto")}</h3>
             <p>${escapeHtml(product.descricao || "Consulte a equipe da Hachi para saber mais.")}</p>
             <strong class="product-price">${formatCurrency(product.preco)}</strong>
+            <button class="btn btn-secondary btn-small product-details-button" type="button" data-action="product-details" data-product-id="${escapeHtml(product.idProduto)}">Ver detalhes</button>
         </article>`;
+    }
+
+    function productIllustration(product) {
+        const category = normalizeText(`${product.nomeCategoria || ""} ${product.nome || ""}`);
+        if (/taiyaki/.test(category)) return "assets/menu-taiyaki.svg";
+        if (/veg|vegan/.test(category)) return "assets/menu-vegan.svg";
+        if (/frappe|drink|bebida|cafe|café/.test(category)) return "assets/menu-drinks.svg";
+        return "assets/menu-crepe.svg";
     }
 
     function safeHttpUrl(value) {
@@ -867,14 +898,6 @@
         } catch {
             return false;
         }
-    }
-
-    function productIcon(category) {
-        if (/café|bebida|frappe/i.test(category || "")) return "☕";
-        if (/salgad/i.test(category || "")) return "🥙";
-        if (/monte o seu/i.test(category || "")) return "🥞";
-        if (/vegano/i.test(category || "")) return "🌱";
-        return "🍡";
     }
 
     function dashboardScreen() {
@@ -905,7 +928,7 @@
             </div>
             <div class="admin-tabs" role="tablist" aria-label="Seções do painel administrativo">
                 <button class="admin-tab" type="button" role="tab" data-admin-tab="overview" aria-selected="${state.adminTab === "overview"}">Visão Geral</button>
-                <button class="admin-tab" type="button" role="tab" data-admin-tab="clients" aria-selected="${state.adminTab === "clients"}">Clientes &amp; Insights</button>
+                <button class="admin-tab" type="button" role="tab" data-admin-tab="clients" aria-selected="${state.adminTab === "clients"}">Clientes</button>
             </div>
             ${state.adminTab === "clients" ? clientInsightsScreen(users) : dashboardOverview({ dashboard, users, periodFeedbacks, periodStamps, periodRedemptions, metrics })}
         </main>
@@ -916,7 +939,7 @@
         const locations = locationSummary(users);
         const visibleLocations = state.showAllLocations ? locations : locations.slice(0, 5);
         const matchingFeedbacks = filteredFeedbacks(dashboard.feedbacks);
-        const recent = state.showAllFeedback ? matchingFeedbacks : matchingFeedbacks.slice(0, 5);
+        const recent = state.showAllFeedback ? matchingFeedbacks : matchingFeedbacks.slice(0, 3);
         return `<div class="alert alert-warning"><p>Os dados são salvos neste navegador; perfis e interações iniciais são exemplos fictícios.</p></div>
             ${state.dashboardLoading ? `<div class="grid grid-4">${Array.from({ length: 4 }, () => `<div class="card stack"><div class="skeleton" style="width:45%"></div><div class="skeleton" style="height:34px"></div><div class="skeleton"></div></div>`).join("")}</div>` : ""}
             ${state.dashboardError ? `<div class="alert alert-error" role="alert"><p>${escapeHtml(state.dashboardError)} <button class="btn btn-quiet btn-small" type="button" data-action="refresh-dashboard">Tentar novamente</button></p></div>` : ""}
@@ -943,7 +966,7 @@
                     ${recent.length
                         ? `<div class="feedback-list">${recent.map((item) => feedbackCard(item, users)).join("")}</div>`
                         : `<div class="empty-state"><strong>${state.feedbackSearch ? "Nenhum comentário encontrado." : "Nenhum feedback registrado neste período."}</strong><span>${state.feedbackSearch ? "Tente outra palavra ou limpe a busca." : "As avaliações enviadas aparecerão aqui."}</span></div>`}
-                    ${matchingFeedbacks.length > 5 ? `<button class="btn btn-quiet btn-small list-toggle" type="button" data-focus-key="feedback-list-toggle" data-action="toggle-feedback-list">${state.showAllFeedback ? "Mostrar menos" : `Mostrar todos (${matchingFeedbacks.length})`}</button>` : ""}
+                    ${matchingFeedbacks.length > 3 ? `<button class="btn btn-quiet btn-small list-toggle" type="button" data-focus-key="feedback-list-toggle" data-action="toggle-feedback-list">${state.showAllFeedback ? "Mostrar menos" : `Mostrar todos (${matchingFeedbacks.length})`}</button>` : ""}
                 </section>
                 <aside class="stack">
                     <section class="card">
@@ -1015,15 +1038,6 @@
         return "45-plus";
     }
 
-    function clientAgeGroupLabel(group) {
-        return {
-            "under-24": "Até 24 anos (Jovens / Estudantes)",
-            "25-34": "25 a 34 anos (Jovens Adultos)",
-            "35-44": "35 a 44 anos",
-            "45-plus": "45+ anos"
-        }[group] || "Idade não informada";
-    }
-
     function customerLoyaltyStatus(balance) {
         if (balance >= STAMPS_FOR_REWARD) return "ready";
         if (balance >= 8) return "engaged";
@@ -1052,69 +1066,9 @@
         });
     }
 
-    function clientSegmentInsights(customers) {
-        const nearlyReady = customers.filter(({ balance }) => balance >= 9 && balance <= 11).length;
-        const locations = new Map();
-        customers.forEach(({ user }) => {
-            const name = [user.cidade, user.regiao].filter(Boolean).join(" · ") || "Localização não informada";
-            locations.set(name, (locations.get(name) || 0) + 1);
-        });
-        const leadingLocation = [...locations.entries()].sort((a, b) => b[1] - a[1])[0];
-        const locationPercent = leadingLocation && customers.length ? Math.round((leadingLocation[1] / customers.length) * 100) : 0;
-        const leadingCustomer = leadingLocation && customers.find(({ user }) =>
-            ([user.cidade, user.regiao].filter(Boolean).join(" · ") || "Localização não informada") === leadingLocation[0]
-        );
-        const regionalProfile = leadingCustomer?.locationGroup === "other-cities" ? "um perfil de visitantes de outras cidades" : "um perfil local recorrente";
-        const feedbacks = customers.flatMap((customer) => customer.feedbacks);
-        const average = feedbacks.length
-            ? (feedbacks.reduce((sum, item) => sum + Number(item.nota || 0), 0) / feedbacks.length).toFixed(1)
-            : null;
-        const detractors = feedbacks.filter((item) => Number(item.nota) <= 2).length;
-        const ageCounts = new Map();
-        customers.filter(({ age }) => age !== null).forEach(({ age }) => {
-            const group = clientAgeGroup(age);
-            ageCounts.set(group, (ageCounts.get(group) || 0) + 1);
-        });
-        const leadingAgeGroup = [...ageCounts.entries()].sort((a, b) => b[1] - a[1])[0];
-        const agePercent = leadingAgeGroup
-            ? Math.round((leadingAgeGroup[1] / [...ageCounts.values()].reduce((sum, count) => sum + count, 0)) * 100)
-            : 0;
-        return [
-            {
-                icon: "↗",
-                title: "Oportunidade de retorno",
-                text: nearlyReady
-                    ? `${nearlyReady} ${nearlyReady === 1 ? "cliente está" : "clientes estão"} a 1–3 visitas de completar o cartão.`
-                    : "Nenhum cliente deste grupo está a até três selos do resgate."
-            },
-            {
-                icon: "⌖",
-                title: "Predominância regional",
-                text: leadingLocation
-                    ? `${locationPercent}% vêm de ${leadingLocation[0]}, sugerindo ${regionalProfile}.`
-                    : "A região será destacada quando houver clientes neste filtro."
-            },
-            {
-                icon: "★",
-                title: "Termômetro de satisfação",
-                text: average
-                    ? `Média de ${average}/5★ neste grupo.${detractors ? ` Atenção: ${detractors} ${detractors === 1 ? "avaliação detratora pede" : "avaliações detratoras pedem"} acompanhamento.` : " Sem avaliações detratoras registradas."}`
-                    : "Ainda não há avaliações para calcular a satisfação deste grupo."
-            },
-            {
-                icon: "◷",
-                title: "Perfil etário",
-                text: leadingAgeGroup
-                    ? `Faixa etária predominante neste filtro: ${clientAgeGroupLabel(leadingAgeGroup[0])} (${agePercent}%).`
-                    : "Não há datas de nascimento informadas neste segmento."
-            }
-        ];
-    }
-
     function clientInsightsScreen(users) {
         const profiles = clientProfiles(users);
         const filtered = filteredClients(profiles);
-        const insights = clientSegmentInsights(filtered);
         const loyaltyOptions = [
             ["all", "Todos os clientes"],
             ["ready", "Prontos para resgate (12+)"],
@@ -1143,7 +1097,7 @@
             ["45-plus", "45+ anos"]
         ];
         return `<section class="client-insights" aria-labelledby="clients-title">
-            <div class="clients-heading"><div><p class="eyebrow">Relacionamento acionável</p><h2 id="clients-title">Clientes &amp; Insights</h2><p class="muted">Combine filtros para encontrar oportunidades de fidelização.</p></div><span class="badge">${users.length} clientes na base</span></div>
+            <div class="clients-heading"><div><p class="eyebrow">Relacionamento com clientes</p><h2 id="clients-title">Clientes</h2><p class="muted">Combine filtros para encontrar clientes na base.</p></div><span class="badge">${users.length} clientes na base</span></div>
             <div class="client-filters card">
                 <div class="field client-search-field"><label for="client-search">Buscar cliente</label><input id="client-search" class="input" type="search" data-focus-key="client-search" data-client-search value="${escapeHtml(state.clientSearch)}" placeholder="Nome, e-mail ou telefone" autocomplete="off"></div>
                 <div class="field"><label for="client-loyalty-filter">Fidelidade</label><select id="client-loyalty-filter" class="input" data-focus-key="client-loyalty" data-client-filter="loyalty">${loyaltyOptions.map(([value, label]) => `<option value="${value}" ${state.clientLoyaltyFilter === value ? "selected" : ""}>${label}</option>`).join("")}</select></div>
@@ -1152,7 +1106,6 @@
                 <div class="field"><label for="client-age-filter">Faixa etária</label><select id="client-age-filter" class="input" data-focus-key="client-age" data-client-filter="age">${ageOptions.map(([value, label]) => `<option value="${value}" ${state.clientAgeFilter === value ? "selected" : ""}>${label}</option>`).join("")}</select></div>
                 <div class="client-filter-footer"><span role="status">Mostrando <strong>${filtered.length}</strong> de <strong>${users.length}</strong> clientes encontrados</span><button class="btn btn-quiet btn-small" type="button" data-action="clear-client-filters">Limpar filtros</button></div>
             </div>
-            <section class="insight-section" aria-labelledby="insights-title"><div class="section-heading"><div><p class="eyebrow">Leitura do segmento</p><h3 id="insights-title">Insights inteligentes</h3></div></div><div class="insight-grid">${insights.map((insight) => `<article class="insight-card"><span class="insight-icon" aria-hidden="true">${insight.icon}</span><div><h4>${escapeHtml(insight.title)}</h4><p>${escapeHtml(insight.text)}</p></div></article>`).join("")}</div></section>
             <section class="client-list-section" aria-labelledby="client-list-title"><div class="section-heading"><div><p class="eyebrow">Base de relacionamento</p><h3 id="client-list-title">Clientes encontrados</h3></div></div>
                 ${filtered.length ? `<div class="data-table-wrap client-table-wrap"><table class="data-table client-table"><thead><tr><th>Cliente</th><th>Idade</th><th>Cidade / região</th><th>Progresso de selos</th><th>Resgates</th><th>Última avaliação</th><th></th></tr></thead><tbody>${filtered.map((customer) => clientTableRow(customer)).join("")}</tbody></table></div>` : `<div class="empty-state card"><strong>Nenhum cliente corresponde aos filtros.</strong><span>Altere a busca ou limpe os filtros para ver a base completa.</span></div>`}
             </section>
@@ -1438,7 +1391,7 @@
             state.pendingAction = null;
             const trigger = app.querySelector(action === "validate" ? '[data-action="scan-code"]' : '[data-action="feedback"]');
             trigger?.focus();
-            state.selectedRating = 5;
+            if (action === "feedback") state.selectedRating = 0;
             openModal(action === "validate" ? "scan" : "feedback");
             return;
         }
@@ -1550,6 +1503,16 @@
     }
 
     function renderModal(modal) {
+        if (modal.type === "product-details") {
+            return productDetailsModal(modal.productId);
+        }
+
+        if (modal.type === "screen-help") {
+            const help = screenHelpContent();
+            const content = `<p class="modal-copy">${escapeHtml(help.intro)}</p><ul class="screen-help-list">${help.steps.map((step) => `<li>${escapeHtml(step)}</li>`).join("")}</ul><div class="modal-actions"><button class="btn btn-dark btn-block" type="button" data-action="close-modal">Entendi</button></div>`;
+            return modalShell(`Como usar: ${help.title}`, content, { size: "modal-medium" });
+        }
+
         if (modal.type === "scan") {
             const cameraMessage = modal.cameraError || "Permita o acesso à câmera ou digite o código abaixo.";
             const content = `<p class="modal-copy">Enquadre o QR Code da compra. Se preferir, informe o código manualmente.</p>
@@ -1592,7 +1555,7 @@
                     <fieldset class="field" style="border:0;padding:0;margin:0">
                         <legend class="field-label">Nota de avaliação</legend>
                         <div class="star-picker" role="group" aria-label="Escolha uma nota de 1 a 5 estrelas">
-                            ${[1, 2, 3, 4, 5].map((rating) => `<button type="button" data-rating="${rating}" tabindex="${rating === state.selectedRating ? "0" : "-1"}" aria-pressed="${rating === state.selectedRating}" aria-label="${rating} ${rating === 1 ? "estrela" : "estrelas"}">${rating <= state.selectedRating ? "★" : "☆"}</button>`).join("")}
+                            ${[1, 2, 3, 4, 5].map((rating) => `<button type="button" data-rating="${rating}" tabindex="${rating === state.selectedRating || (state.selectedRating === 0 && rating === 1) ? "0" : "-1"}" aria-pressed="${rating === state.selectedRating}" aria-label="${rating} ${rating === 1 ? "estrela" : "estrelas"}">${rating <= state.selectedRating ? "★" : "☆"}</button>`).join("")}
                         </div>
                         <p class="star-picker-hint">Use as setas do teclado ou passe o cursor para escolher uma nota.</p>
                     </fieldset>
@@ -1645,6 +1608,86 @@
         return "";
     }
 
+    function productDetailsModal(productId) {
+        const product = state.products.find((item) => String(item.idProduto) === String(productId));
+        if (!product) {
+            return modalShell("Item não encontrado", `<div class="alert alert-warning"><p>Não foi possível carregar os detalhes deste item do cardápio.</p></div><button class="btn btn-dark btn-block" type="button" data-action="close-modal">Fechar</button>`, { size: "modal-small" });
+        }
+        const imageSource = product.imagemUrl && safeHttpUrl(product.imagemUrl)
+            ? product.imagemUrl
+            : productIllustration(product);
+        const eligibility = product.tipo === "Adicional"
+            ? "Adicional pago — não elegível para cortesia."
+            : product.elegivelResgate
+                ? "Pode ser resgatado como cortesia ao completar 12 selos."
+                : "Este item não participa do resgate de cortesia.";
+        return modalShell(product.nome || "Detalhes do item", `<div class="product-detail-content">
+            <img class="product-detail-image" src="${escapeHtml(imageSource)}" alt="Ilustração de ${escapeHtml(product.nome || "item do cardápio")}">
+            <div class="product-detail-info"><span class="badge">${escapeHtml(product.nomeCategoria || "Cardápio")}</span><strong class="product-price">${formatCurrency(product.preco)}</strong></div>
+            <p class="product-detail-description">${escapeHtml(product.descricao || "Consulte a equipe da Hachi para saber mais.")}</p>
+            <p class="product-detail-eligibility ${product.elegivelResgate ? "is-redeemable" : ""}">${escapeHtml(eligibility)}</p>
+            <div class="modal-actions"><button class="btn btn-dark btn-block" type="button" data-action="close-modal">Voltar ao cardápio</button></div>
+        </div>`, { size: "modal-medium" });
+    }
+
+    function screenHelpContent() {
+        const screens = {
+            home: {
+                title: "Página inicial",
+                intro: "Conheça a Hachi, descubra os caminhos principais e entenda o programa Hachi Conecta.",
+                steps: ["Criar conta / Participar abre o cadastro em duas etapas.", "Entrar na conta leva ao login; o acesso de demonstração fica no final da página.", "Explorar cardápio abre a lista de produtos e suas categorias.", "Os cinco passos explicam como validar uma compra e trocar os 12 selos.", "Os cartões de navegação abrem fidelidade, validação de código e feedback."]
+            },
+            "register-1": {
+                title: "Cadastro · etapa 1",
+                intro: "Informe seu nome e data de nascimento para iniciar a criação da conta.",
+                steps: ["Preencha os campos obrigatórios e selecione Próximo.", "Na etapa seguinte, informe contato, localização e senha.", "O asterisco indica um campo obrigatório."]
+            },
+            "register-2": {
+                title: "Cadastro · etapa 2",
+                intro: "Complete seus dados de contato e confirme os termos para criar a conta.",
+                steps: ["Informe telefone, e-mail, cidade e região.", "Crie e confirme sua senha.", "Marque o consentimento dos termos e da política antes de confirmar."]
+            },
+            login: {
+                title: "Entrar na conta",
+                intro: "Acesse seu cartão de fidelidade com o e-mail e a senha cadastrados.",
+                steps: ["Preencha e-mail e senha e selecione Entrar.", "O link de cadastro cria uma conta local neste protótipo.", "A recuperação de senha ainda não está disponível na versão local."]
+            },
+            loyalty: {
+                title: "Meu cartão de fidelidade",
+                intro: "Acompanhe seus selos, valide compras e confira as cortesias disponíveis.",
+                steps: ["Cada compra a partir de R$ 40,00 gera um selo.", "Use Escanear QR Code ou Digitar código manualmente para validar a compra.", "Ao completar 12 selos, selecione Fazer resgate e apresente o bilhete à equipe.", "Cardápio mostra os itens elegíveis e os adicionais que não participam."]
+            },
+            profile: {
+                title: "Perfil",
+                intro: "Confira ou atualize seus dados pessoais e as opções da conta.",
+                steps: ["Editar informações abre os campos de cadastro.", "Sair encerra sua sessão local.", "A exclusão da conta fica nas opções de edição e é irreversível."]
+            },
+            catalog: {
+                title: "Cardápio",
+                intro: "Explore produtos, encontre itens e veja detalhes de ingredientes e resgate.",
+                steps: ["Use a busca para filtrar por nome, categoria ou descrição.", "Selecione uma categoria; as setas percorrem a lista horizontal.", "Ver detalhes abre uma descrição completa, preço e elegibilidade para cortesia.", "Itens elegíveis para resgate estão identificados nos cartões."]
+            },
+            dashboard: {
+                title: state.adminTab === "clients" ? "Clientes" : "Painel administrativo",
+                intro: state.adminTab === "clients" ? "Filtre a base e abra os detalhes dos clientes para explorar o segmento." : "Acompanhe o período, a experiência dos clientes e os resultados do programa.",
+                steps: state.adminTab === "clients"
+                    ? ["Combine busca, fidelidade, região, avaliação e faixa etária.", "Ver detalhes abre o cadastro, o histórico e recomendações individuais.", "Limpar filtros volta a exibir toda a base."]
+                    : ["Escolha 7, 30, 90 dias ou Todos para atualizar os indicadores.", "As setas comparam KPIs com o período anterior de mesma duração.", "Pesquise palavras nos comentários e filtre as notas por estrelas.", "Mostrar todos expande feedbacks e regiões; Gerar relatório baixa um CSV."]
+            },
+            attendant: {
+                title: "Novo registro",
+                intro: "A equipe registra uma compra elegível para gerar um código de selo.",
+                steps: ["Informe o valor da compra, a partir de R$ 40,00.", "Selecione Confirmar e gerar código para exibir o QR Code.", "O cliente valida o código no cartão de fidelidade."]
+            },
+            "attendant-code": {
+                title: "Código de compra",
+                intro: "Esta tela mostra o QR Code e o código gerados para a compra.",
+                steps: ["Peça ao cliente para escanear o QR Code ou digitar o código no cartão.", "Selecione Concluído quando o cliente terminar."]
+            }
+        };
+        return screens[state.screen] || screens.home;
+    }
+
     function clientDetailModal(clientId) {
         const dashboard = state.dashboard || {};
         const user = (dashboard.users || []).find((item) => Number(item.idUsuario) === Number(clientId));
@@ -1686,7 +1729,6 @@
                 <div class="data-row"><dt>Idade</dt><dd>${customer.age === null ? "Não informada" : `${customer.age} anos`}</dd></div>
                 <div class="data-row"><dt>Data de nascimento</dt><dd>${escapeHtml(formatDate(user.dtNasc))}</dd></div>
                 <div class="data-row"><dt>Cadastro</dt><dd>${escapeHtml(formatDate(user.criadoEm))}</dd></div>
-                <div class="data-row"><dt>Consentimento LGPD</dt><dd>${user.consentimentoLGPD ? "Registrado" : "Não registrado"}</dd></div>
             </dl></section>
             <section class="drawer-section"><p class="eyebrow">Resumo de fidelidade</p><div class="drawer-kpi-grid">
                 <div><span>Saldo atual</span><strong>${customer.balance} selo${customer.balance === 1 ? "" : "s"}</strong></div>
@@ -1968,6 +2010,10 @@
     async function sendFeedback(form, submitButton) {
         const values = formValues(form);
         const comment = String(values.comentario || "").trim();
+        if (state.selectedRating < 1 || state.selectedRating > 5) {
+            showFormError(form, "Selecione uma nota de 1 a 5 estrelas para enviar o feedback.");
+            return;
+        }
         if (!comment) {
             showFormError(form, "Conte um pouco sobre sua experiência para enviar o feedback.");
             return;
@@ -2326,7 +2372,7 @@
             const rating = Number(button.dataset.rating);
             const displayedRating = previewRating ?? state.selectedRating;
             button.setAttribute("aria-pressed", String(rating === state.selectedRating));
-            button.tabIndex = rating === state.selectedRating ? 0 : -1;
+            button.tabIndex = rating === state.selectedRating || (state.selectedRating === 0 && rating === 1) ? 0 : -1;
             button.classList.toggle("is-previewed", previewRating !== null && rating <= previewRating);
             button.textContent = rating <= displayedRating ? "★" : "☆";
         });
@@ -2360,7 +2406,7 @@
             navigateRoute("loyalty");
             return;
         }
-        state.selectedRating = 5;
+        if (action === "feedback") state.selectedRating = 0;
         openModal(action === "validate" ? "scan" : "feedback");
     }
 
@@ -2384,8 +2430,11 @@
             return;
         }
         if (target.dataset.category) {
+            const categoryScrollLeft = app.querySelector("#category-pills")?.scrollLeft || 0;
             state.selectedCategory = target.dataset.category;
             render();
+            const categoryPills = app.querySelector("#category-pills");
+            if (categoryPills) categoryPills.scrollLeft = categoryScrollLeft;
             return;
         }
         if (target.dataset.period) {
@@ -2407,6 +2456,27 @@
         }
 
         switch (target.dataset.action) {
+            case "screen-help":
+                openModal("screen-help");
+                break;
+            case "product-details":
+                openModal("product-details", { productId: target.dataset.productId });
+                break;
+            case "scroll-categories": {
+                const categoryPills = app.querySelector("#category-pills");
+                if (!categoryPills) break;
+                const distance = Math.max(220, categoryPills.clientWidth * 0.7);
+                const delta = target.dataset.direction === "previous" ? -distance : distance;
+                if (typeof categoryPills.scrollBy === "function") {
+                    categoryPills.scrollBy({ left: delta, behavior: "smooth" });
+                } else {
+                    categoryPills.scrollLeft += delta;
+                }
+                break;
+            }
+            case "focus-catalog-search":
+                app.querySelector("[data-catalog-search]")?.focus();
+                break;
             case "profile":
                 navigateRoute("profile");
                 break;

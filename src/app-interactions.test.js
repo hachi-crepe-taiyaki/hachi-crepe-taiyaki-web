@@ -67,19 +67,33 @@ describe("local interface interactions", () => {
         const feedbackButton = await waitForElement(".loyalty-layout ~ .page-links [data-action='feedback']");
 
         const database = JSON.parse(localStorage.getItem("hachi-conecta-demo-v1"));
-        expect(database.schemaVersion).toBe(4);
+        expect(database.schemaVersion).toBe(5);
         expect(database.users.filter((user) => Number(user.funcao) === 0)).toHaveLength(7);
         expect(database.stampEvents.length).toBeGreaterThan(0);
         expect(database.feedbacks.some((item) => item.comentario === ".sjcyp9e")).toBe(false);
-        expect(database.products).toHaveLength(72);
+        expect(database.products).toHaveLength(61);
         expect(database.products.some((product) => product.nome === "Produto antigo")).toBe(false);
         expect(database.products.some((product) => product.nome === "Taiyaki Tradicional" && product.preco === 12.9 && product.elegivelResgate)).toBe(true);
-        expect(database.products.some((product) => product.nome === "Crepe Especial" && product.preco === 22 && !product.elegivelResgate)).toBe(true);
-        expect(database.products.some((product) => product.nome === "Sorvete de Matchá" && product.preco === 12 && !product.elegivelResgate)).toBe(true);
+        expect(database.products.some((product) => product.nomeCategoria === "Monte o Seu Crepe (Base)")).toBe(false);
+        expect(database.products.some((product) => ["Crepe Especial", "Crepe Tradicional"].includes(product.nome))).toBe(false);
+        expect(database.products.some((product) => product.nome === "Sorvete de Matchá / Chá Verde" && product.nomeCategoria === "Taiyaki" && product.preco === 12)).toBe(true);
         expect(database.users.filter((user) => Number(user.funcao) === 0).every((user) => user.dtNasc)).toBe(true);
 
         feedbackButton.click();
+        const starButtons = [...document.querySelectorAll(".star-picker [data-rating]")];
+        expect(starButtons.map((button) => button.textContent)).toEqual(["☆", "☆", "☆", "☆", "☆"]);
+        expect(starButtons.every((button) => button.getAttribute("aria-pressed") === "false")).toBe(true);
+        expect(starButtons[0].tabIndex).toBe(0);
+        const feedbackForm = document.querySelector("#feedback-form");
+        feedbackForm.querySelector("#feedback-comment").value = "Feedback sem nota.";
+        feedbackForm.dispatchEvent(new Event("submit", { bubbles: true, cancelable: true }));
+        expect(document.querySelector(".alert-error").textContent).toContain("Selecione uma nota");
+
         const threeStars = document.querySelector('[data-rating="3"]');
+        threeStars.dispatchEvent(new MouseEvent("pointerover", { bubbles: true }));
+        expect(starButtons.map((button) => button.textContent)).toEqual(["★", "★", "★", "☆", "☆"]);
+        threeStars.dispatchEvent(new MouseEvent("pointerout", { bubbles: true, relatedTarget: null }));
+        expect(starButtons.map((button) => button.textContent)).toEqual(["☆", "☆", "☆", "☆", "☆"]);
         threeStars.focus();
         threeStars.click();
         threeStars.dispatchEvent(new KeyboardEvent("keydown", { key: "ArrowRight", bubbles: true, cancelable: true }));
@@ -91,7 +105,12 @@ describe("local interface interactions", () => {
         await delay(230);
         document.querySelector('.nav-link[data-route="catalog"]').click();
         await waitForElement("[data-catalog-search]");
-        expect(document.querySelectorAll(".product-card")).toHaveLength(72);
+        expect(document.querySelectorAll(".product-card")).toHaveLength(61);
+        expect([...document.querySelectorAll("#category-pills [data-category]")].some((button) => button.dataset.category === "Monte o Seu Crepe (Base)")).toBe(false);
+
+        document.querySelector('[data-action="scroll-categories"][data-direction="next"]').click();
+        document.querySelector('[data-action="focus-catalog-search"]').click();
+        expect(document.activeElement).toBe(document.querySelector("[data-catalog-search]"));
 
         document.querySelector('[data-category="Taiyaki"]').click();
         expect(document.querySelectorAll(".product-card")).toHaveLength(6);
@@ -104,6 +123,25 @@ describe("local interface interactions", () => {
         expect(document.querySelectorAll(".product-card")).toHaveLength(1);
         expect(document.querySelector(".product-card h3").textContent).toBe("Hachi Avelã");
         expect(document.querySelector(".product-card .product-price").textContent).toContain("23,00");
+
+        document.querySelector(".product-details-button").click();
+        const productDetails = await waitForElement(".product-detail-content");
+        expect(document.querySelector('[role="dialog"] h2').textContent).toBe("Hachi Avelã");
+        expect(productDetails.textContent).toContain("23,00");
+        expect(productDetails.textContent).toContain("cortesia ao completar 12 selos");
+        document.querySelector(".modal-close").click();
+        await delay(230);
+
+        document.querySelector('[data-action="screen-help"]').click();
+        const helpDialog = await waitForElement(".screen-help-list");
+        expect(helpDialog.textContent).toContain("categoria");
+        document.querySelector(".modal-close").click();
+        await delay(230);
+
+        const languagePicker = document.querySelector(".header-language");
+        languagePicker.querySelector("summary").click();
+        expect(languagePicker.open).toBe(true);
+        expect(languagePicker.querySelector(".language-popover").textContent).toContain("Português (Brasil)");
     });
 
     it("filters clients by age and displays age in the customer drawer", async () => {
@@ -126,13 +164,15 @@ describe("local interface interactions", () => {
         expect(document.querySelector(".dashboard-rating-card #rating-notes-heading").textContent).toBe("Notas das avaliações");
         expect(document.querySelector(".kpi-card:nth-child(2) .kpi-value").textContent).toBe("1");
         expect(document.querySelector(".kpi-card:nth-child(2) .kpi-trend").classList.contains("is-positive")).toBe(true);
-        expect(document.querySelectorAll(".feedback-item")).toHaveLength(5);
+        expect(document.querySelectorAll(".feedback-item")).toHaveLength(3);
         expect(document.querySelector(".location-list").querySelectorAll(".location-row")).toHaveLength(5);
 
         document.querySelector('[data-action="toggle-feedback-list"]').click();
-        expect(document.querySelectorAll(".feedback-item").length).toBeGreaterThan(5);
+        expect(document.querySelectorAll(".feedback-item").length).toBeGreaterThan(3);
+        expect(document.querySelector(".location-list").querySelectorAll(".location-row")).toHaveLength(5);
         document.querySelector('[data-action="toggle-location-list"]').click();
         expect(document.querySelector(".location-list").querySelectorAll(".location-row").length).toBeGreaterThan(5);
+        expect(document.querySelectorAll(".feedback-item").length).toBeGreaterThan(3);
 
         const feedbackSearch = document.querySelector("[data-feedback-search]");
         feedbackSearch.value = "manga";
@@ -165,11 +205,13 @@ describe("local interface interactions", () => {
         const clients = [...document.querySelectorAll(".client-table tbody tr")].map((row) => row.textContent);
         expect(clients.some((row) => row.includes("Mika Aoki"))).toBe(true);
         expect(clients.some((row) => row.includes("Rafael Sato"))).toBe(false);
-        expect(document.querySelector(".insight-card:last-child").textContent).toContain("Faixa etária predominante neste filtro");
+        expect(document.querySelector(".insight-section")).toBeNull();
+        expect(document.querySelector("#clients-title").textContent).toBe("Clientes");
 
         document.querySelector('[data-client-id="9004"][data-action="client-details"]').click();
         const drawer = await waitForElement('[role="dialog"]');
         expect(drawer.textContent).toContain("Idade");
         expect(drawer.textContent).toContain("Data de nascimento");
+        expect(drawer.textContent).not.toContain("Consentimento LGPD");
     });
 });

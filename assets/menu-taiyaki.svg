@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 360 240" fill="none">
+  <defs>
+    <linearGradient id="background" x1="22" y1="8" x2="338" y2="232" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#FFF8E9"/>
+      <stop offset="1" stop-color="#F1D5A5"/>
+    </linearGradient>
+    <linearGradient id="fish" x1="83" y1="72" x2="282" y2="176" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#F5D184"/>
+      <stop offset="1" stop-color="#D88E3F"/>
+    </linearGradient>
+  </defs>
+  <rect width="360" height="240" rx="24" fill="url(#background)"/>
+  <ellipse cx="180" cy="180" rx="116" ry="25" fill="#AE7239" opacity=".14"/>
+  <path d="M79 122c24-39 67-58 119-52 27 3 47 15 63 36l42-26-13 44 13 44-42-26c-16 21-36 33-63 36-52 6-95-13-119-52l-26 16 8-20-8-20 26 16Z" fill="url(#fish)" stroke="#9D592D" stroke-width="6" stroke-linejoin="round"/>
+  <path d="M102 114c19-20 48-30 83-30m-78 50c26 14 54 18 82 13m-67-54c7 6 13 13 18 21m8-27c7 6 13 14 17 23m12-21c7 6 13 14 16 23" stroke="#B87636" stroke-width="4" stroke-linecap="round" opacity=".65"/>
+  <circle cx="242" cy="112" r="6" fill="#573225"/>
+  <path d="M81 91 62 73l25 5m-8 72-20 20 27-6m177-56 23-13-8 26m-8 30 25 13-8-27" fill="#E8AC5D" stroke="#9D592D" stroke-width="4" stroke-linejoin="round"/>
+  <path d="M117 103c15-12 33-19 55-21m-58 50c20 8 41 11 61 8" stroke="#FFF0CF" stroke-width="4" stroke-linecap="round" opacity=".7"/>
+</svg>

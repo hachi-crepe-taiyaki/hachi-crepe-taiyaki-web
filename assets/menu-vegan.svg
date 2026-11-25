@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 360 240" fill="none">
+  <defs>
+    <linearGradient id="background" x1="16" y1="9" x2="343" y2="231" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#F7F8E9"/>
+      <stop offset="1" stop-color="#DDE9C5"/>
+    </linearGradient>
+    <linearGradient id="cone" x1="116" y1="70" x2="222" y2="214" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#E9C679"/>
+      <stop offset="1" stop-color="#B9763B"/>
+    </linearGradient>
+  </defs>
+  <rect width="360" height="240" rx="24" fill="url(#background)"/>
+  <circle cx="180" cy="122" r="94" fill="#FFFEF8" opacity=".75"/>
+  <path d="m116 90 61 128 74-128c-16-23-37-35-66-35-30 0-53 12-69 35Z" fill="url(#cone)" stroke="#8F6036" stroke-width="5" stroke-linejoin="round"/>
+  <path d="m134 101 75 82m-61-105 84 91m-102-60 76 84m-58-112 87 95m-86 7 63-75m-46 37 52-61" stroke="#87552D" stroke-width="4" stroke-linecap="round" opacity=".42"/>
+  <path d="M116 89c16-24 39-36 69-36s53 12 68 36c-14 20-37 30-69 30s-54-10-68-30Z" fill="#FFF3DD" stroke="#D0B485" stroke-width="4"/>
+  <circle cx="150" cy="82" r="15" fill="#E95B63"/>
+  <circle cx="183" cy="68" r="16" fill="#F47770"/>
+  <circle cx="215" cy="84" r="14" fill="#D84B53"/>
+  <path d="M273 113c-1-24 11-39 35-44 1 25-11 40-35 44Zm-3 34c-20-12-25-30-14-52 20 13 25 30 14 52Zm-20-16c11-18 29-23 51-14-12 19-29 24-51 14Z" fill="#628C50" stroke="#47713B" stroke-width="3" stroke-linejoin="round"/>
+  <path d="M253 159c20-11 35-27 47-49" stroke="#47713B" stroke-width="4" stroke-linecap="round"/>
+</svg>
